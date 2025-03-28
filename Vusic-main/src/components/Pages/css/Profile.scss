@@ -1,0 +1,135 @@
+.Profile {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-color); // ✅ Фон зависит от темы
+  color: var(--text-color); // ✅ Цвет текста тоже меняется
+
+  .top-profile {
+    z-index: 10;
+    background-color: var(--profile-bg, var(--bg-color)); // ✅ Фон профиля из темы
+    border-bottom: 1px solid var(--border-color); // ✅ Граница
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+
+    .MuiAvatar-root {
+      box-shadow: 0 4px 15px rgba(0,0,0,.5);
+    }
+
+    .profile-detail {
+      padding: 10px;
+      margin: 10px;
+      background-color: var(--profile-bg, var(--bg-color)); // ✅ Используем цвет из темы
+      border-radius: 7px;
+      display: flex;
+      flex-direction: column;
+      text-align: center;
+
+      h3 {
+        font-weight: 600;
+        font-size: 4rem;
+        color: var(--text-color); // ✅ Текст меняется в зависимости от темы
+      }
+
+      p {
+        font-size: 1.1rem;
+        font-weight: lighter;
+        color: var(--secondary-text-color, grey); // ✅ Используем цвет темы
+      }
+    }
+  }
+
+  .bottom-profile {
+    padding: 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    h3 {
+      padding-left: 10px;
+      font-size: 1.5rem;
+      text-transform: uppercase;
+      color: var(--text-color);
+    }
+
+    .most-played {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+  }
+
+  /* ✅ Кнопки */
+  .top-profile button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--button-border);
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+
+    &:hover {
+      background-color: var(--button-hover-bg);
+      color: var(--button-hover-text);
+    }
+  }
+}
+
+/* 🔵 Переменные для светлой темы */
+:root {
+  --button-bg: #07689f; /* Синий фон кнопок */
+  --button-text: white; /* Белый текст */
+  --button-border: #055a8c; /* Тёмно-синяя граница */
+  --button-hover-bg: #055a8c; /* Цвет при наведении */
+  --button-hover-text: white;
+}
+
+/* 🟢 Переменные для тёмной темы */
+.dark-theme {
+  --button-bg: #4ecca3; /* Зелёный фон кнопок */
+  --button-text: black; /* Чёрный текст */
+  --button-border: #3aa98a; /* Тёмно-зелёная граница */
+  --button-hover-bg: #3aa98a;
+  --button-hover-text: black;
+}
+
+/* 🎯 Медиа-запросы */
+@media only screen and (max-width: 970px) {
+  .Profile {
+    .top-profile {
+      justify-content: center;
+    }
+    
+    .bottom-profile {
+      text-align: center;
+      
+      .most-played {
+        justify-content: center;
+      }
+    }
+  }
+  
+  .profile-playlist {
+    display: block;
+  }
+}
+
+@media only screen and (max-width: 580px) {
+  .Profile {
+    .top-profile {
+      .profile-detail {
+        h3 {
+          font-size: 3rem;
+        }
+      }
+    }
+
+    .bottom-profile {
+      text-align: center;
+      
+      .most-played {
+        justify-content: center;
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+.lang-list {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 50% 50%;
+  
+  button {
+    margin: 5px;
+    background-color: var(--bg-color); // Используем цвет фона из темы
+    color: var(--text-color) !important; // Текст будет зависеть от темы
+    border: 1px solid var(--border-color);
+    
+    &:hover {
+      background-color: var(--button-hover-bg);
+      color: var(--button-hover-text) !important;
+    }
+  }
+}

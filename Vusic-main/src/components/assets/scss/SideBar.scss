@@ -1,0 +1,135 @@
+/* Цвета по теме */
+:root {
+  --theme-button-bg: #07689f; /* Синий фон кнопки в светлой теме */
+  --theme-button-text: white;
+  --theme-icon-color: black;
+}
+
+/* Тёмная тема */
+.dark-theme {
+  --theme-button-bg: #4ecca3; /* Зеленый фон кнопки в темной теме */
+  --theme-button-text: black;
+  --theme-icon-color: white;
+}
+
+/* Общая обёртка сайдбара */
+.aside-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 80vh;
+  border-right: 1px solid var(--border-color);
+  color: inherit;
+  overflow-y: auto;
+  scrollbar-width: none;
+
+  .aside-bar-container {
+    display: flex;
+    flex-flow: column;
+    width: 100%;
+  }
+
+  .p1 {
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px;
+    font-weight: bolder;
+    user-select: none;
+    color: inherit;
+  }
+
+  .lib-sub {
+    padding: 10px;
+    margin: 5px 0;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    color: inherit;
+    width: 100%;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .MuiSvgIcon-root {
+      color: var(--theme-icon-color) !important;
+    }
+  }
+
+  .MuiButton-startIcon {
+    color: var(--theme-icon-color) !important;
+  }
+
+  .theme-toggle-btn,
+  .add-playlist-btn {
+    background-color: var(--theme-button-bg) !important;
+    color: var(--theme-button-text) !important;
+    width: 100%;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+
+    .MuiButton-startIcon {
+      color: var(--theme-button-text) !important;
+    }
+  }
+
+  /* Плейлисты */
+  .playlist {
+    flex: 1;
+
+    .p1 {
+      border-top: 1px solid var(--border-color);
+    }
+  }
+
+  /* Обёртка для одной строки с плейлистом */
+  .playlist-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    border-bottom: 1px solid var(--border-color);
+
+    .lib-sub {
+      flex: 1;
+      padding-right: 0;
+      border-bottom: 0;
+      border-radius: 0 !important; /* убираем скругления */
+      margin: 0 !important; /* убираем внешний отступ */
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.05); /* Как у Home */
+        color: inherit;
+
+        .MuiSvgIcon-root {
+          color: inherit;
+        }
+      }
+    }
+
+    .playlist-icons {
+      display: flex;
+      gap: 4px;
+      margin-right: 8px;
+
+      .MuiSvgIcon-root {
+        color: var(--theme-icon-color) !important;
+      }
+    }
+
+
+    
+  }
+}
+
+.aside-bar::-webkit-scrollbar {
+  display: none;
+}
+
+@media only screen and (max-width: 970px) {
+  .aside-bar {
+    display: none;
+  }
+}

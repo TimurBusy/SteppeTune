@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SteppeTune</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="cursor"></div>
+    <!-- Навигация -->
+    <header>
+        <div class="logo">
+            <img src="images/image 9.png" alt="Описание" class="img">
+            <a href="пробный2.html">SteppeTune</a>
+        </div>
+        <nav>
+            <a href="#">Discover</a>
+            <a href="login.html">Join</a>
+        </nav>
+    </header>
+
+    <!-- Главный экран -->
+    <section class="hero">
+        <img src="images/image_1.png" alt="Описание" class="my-image1">
+        <div class="hero-text">
+            <h1>Unleash your sound</h1>
+            <p>Discover and connect with music like never before</p>
+            <a href="#choose" class="btn">Stream Now</a>
+        </div>        
+    </section>
+
+    <section class="discover">
+        <div class="content-wrapper">
+            <!-- Левая часть: 3 иконки + текст -->
+            <div class="options-wrapper">
+                <h2>Your sound, your way</h2>
+                <div class="options">
+                    <div class="option">
+                        <img src="images/image 11.png" alt="Описание" class="my-image2">
+                        <p class="option-text">Charts</p>
+                    </div>
+                    <div class="option">
+                        <img src="images/image 10.png" alt="Описание" class="my-image2">
+                        <p class="option-text">Albums</p>
+                    </div>
+                    <div class="option">
+                        <img src="images/image 8.png" alt="Описание" class="my-image2">
+                        <p class="option-text">More</p>
+                    </div>
+                </div>
+    
+                <!-- Теперь текст внутри options-wrapper -->
+                <p class="step">
+                    SteppeTune revolutionizes the music landscape by utilizing blockchain technology to protect the uniqueness of every track uploaded. Based in Astana, we provide a transparent payment system, allowing users to listen, search, buy, or rent beats effortlessly. Whether you're a listener or an artist, connect with creators directly and manage your transactions securely. Join us in shaping the future of music where individuality and collaboration thrive.
+                </p>
+            </div>
+    
+            <!-- Правая картинка -->
+            <img src="images/image 6.png" alt="Описание" class="my-image3">
+        </div>
+    </section>
+    
+
+    <section id="choose" class="choose-plan">
+        <h2>How do you want to use SteppeTune?</h2>
+        <p>Select an option to continue.</p>
+    
+        <div class="opts">
+            <div class="opt" onclick="redirectTo('register.html')">
+                <img src="images/edm.jpg" alt="Icon">
+                <p>Browse & Listen</p>
+            </div>
+            <div class="opt" onclick="redirectTo('subscription.html')">
+                <img src="images/eq.jpg" alt="Icon">
+                <p>Buy & Sell</p>
+            </div>
+            <div class="opt" onclick="redirectTo('subscription.html')">
+                <img src="images/album-cover.jpg" alt="Icon">
+                <p>Both Sell & Listen Beats</p>
+            </div>
+        </div>
+    </section>
+    
+
+    <!-- Подвал -->
+    <footer>
+        <p>About Us | Contact</p>
+        <div class="socials">
+            <a href="main.html"><img src="icons copy/facebook.png" alt="Facebook"></a>
+            <a href="main.html"><img src="icons copy//instagram.png" alt="Instagram"></a>
+            <a href="main.html"><img src="icons copy/youtube.png" alt="YouTube"></a>
+            <a href="main.html"><img src="icons copy/twitter.png" alt="Twitter"></a>
+            <a href="main.html"><img src="icons copy/itunes.png" alt="iTunes"></a>
+            <a href="main.html"><img src="icons copy/spotify.png" alt="Spotify"></a>
+            <a href="main.html#mail"><img src="icons copy/mail.png" alt="Telegram"></a>
+        </div>
+    </footer>
+
+    <script>
+           // Находим элемент кастомного курсора
+            const cursor = document.querySelector('.cursor');
+
+            let mouseX = 0, mouseY = 0;
+            let cursorX = 0, cursorY = 0;
+
+            // Обновляем координаты курсора
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            function animateCursor() {
+                // Запаздывающий эффект (плавно догоняет курсор)
+                cursorX += (mouseX - cursorX) * 0.1;
+                cursorY += (mouseY - cursorY) * 0.1;
+
+                cursor.style.left = `${cursorX}px`;
+                cursor.style.top = `${cursorY}px`;
+
+                requestAnimationFrame(animateCursor);
+            }
+
+            animateCursor(); // Запуск анимации
+
+            // Добавляем эффект волны при клике
+            document.addEventListener('click', () => {
+                cursor.classList.add('click');
+                setTimeout(() => {
+                    cursor.classList.remove('click');
+                }, 300);
+            });
+
+
+            function redirectTo(page) {
+                window.location.href = page;
+            }
+    </script>
+
+</body>
+</html>

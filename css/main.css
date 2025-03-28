@@ -1,0 +1,286 @@
+body {
+  font-family: 'SF Pro Text', sans-serif;
+  background: #0D0D0D;
+  color: white;
+  margin: 0;
+  display: flex; /* FLEX для правильного распределения */
+  height: 100vh; /* Чтобы всё растягивалось на весь экран */
+  overflow: hidden; /* Чтобы не было горизонтального скролла */
+}
+
+
+/* 🔹 Стили для боковой панели */
+.sidebar {
+  width: 240px; /* Фиксированная ширина */
+  height: 100vh;
+  background: #131313;
+  color: white;
+  position: fixed; /* Фиксируем слева */
+  left: 0;
+  top: 0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  z-index: 10; /* Поверх остального контента */
+}
+
+
+/* Логотип */
+.sidebar .logo {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* 🔹 Стили для меню */
+.menu, .library, .playlist {
+  margin-top: 20px;
+}
+
+.menu p, .library p, .playlist p {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 10px;
+  padding-left: 10px;
+}
+
+.menu a, .library a, .playlist a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: white;
+  font-size: 16px;
+  padding: 10px;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.menu a span, .library a span, .playlist a span {
+  margin-right: 10px;
+}
+
+.menu a:hover, .library a:hover, .playlist a:hover {
+  background: #222;
+}
+
+/* Активная вкладка */
+.menu a.active {
+  background: #00c896;
+  color: black;
+}
+
+.hero-section {
+  flex-grow: 1; /* Пусть занимает всё доступное пространство */
+  padding: 40px;
+  margin-left: 240px; /* Двигаем вправо */
+  width: calc(100% - 240px); /* Вычитаем ширину sidebar */
+  overflow-x: hidden; /* Убираем горизонтальный скролл */
+}
+
+
+.hero-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('v207_709.png') no-repeat center right/cover;
+  opacity: 1;
+  z-index: -1;
+}
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.8), transparent);
+  z-index: -1;
+}
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 20px;
+}
+.search-bar {
+  width: 400px;
+  padding: 10px;
+  border-radius: 20px;
+  border: none;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  outline: none;
+}
+.user-profile {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 15px;
+  border-radius: 30px;
+  gap: 10px;
+  cursor: pointer;
+}
+.user-profile img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+.settings-icon {
+  margin-left: 10px;
+  font-size: 20px;
+  cursor: pointer;
+}
+.header-content {
+  position: absolute;
+  left: 80px;
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 600px;
+}
+h1 {
+  font-size: 56px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.buttons {
+  margin-top: 50px;
+  display: flex;
+  gap: 15px;
+}
+.btn {
+  background: #444;
+  border: none;
+  padding: 14px 28px;
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: 0.3s;
+}
+.btn-outline {
+  background: transparent;
+  border: 2px solid white;
+  color: white;
+  padding: 14px 28px;
+  font-size: 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.btn:hover, .btn-outline:hover {
+  background: #666;
+  border-color: #666;
+}
+.plays-info {
+  position: absolute;
+  bottom: 80px;
+  right: 80px;
+  font-size: 16px;
+  opacity: 0.8;
+  padding: 10px 20px;
+  border: 2px solid white;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.plays-info::before {
+  content: '\1F3A7';
+  font-size: 18px;
+}
+.playlist-section {
+  width: 100%;
+  max-width: 1440px;
+  padding: 40px;
+  text-align: left;
+}
+.playlist-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 50px;
+}
+.playlist-container {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 10px;
+}
+.playlist-item {
+  width: 240px;
+  flex-shrink: 0;
+  text-align: center;
+}
+.playlist-item img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  border-radius: 15px;
+}
+.playlist-item p {
+  margin: 10px 0;
+  font-size: 18px;
+}
+.progress-bar-container {
+  width: 100%;
+  max-width: 1440px;
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.progress-bar {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  position: relative;
+}
+.progress {
+  height: 5px;
+  background: #ffffff;
+  border-radius: 5px;
+  width: 0%;
+}
+.progress-bar:hover .progress {
+  cursor: pointer;
+}
+
+.more-music {
+  margin-top: 30px;
+  display: block;
+  font-size: 18px;
+  color: white;
+  text-decoration: none;
+  transition: 0.3s;
+}
+.more-music:hover {
+  color: #ccc;
+}
+.scroll-buttons {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1440px;
+  margin-bottom: 10px;
+}
+
+.scroll-left, .scroll-right {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.scroll-left:hover, .scroll-right:hover {
+  background: rgba(255, 255, 255, 0.5);
+}

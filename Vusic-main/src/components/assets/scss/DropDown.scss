@@ -1,0 +1,59 @@
+/* Цвета по теме */
+:root {
+  --dropdown-button-bg: #07689f; /* Синий фон кнопки "Update" */
+  --dropdown-button-text: white; /* Белый текст */
+  --dropdown-button-hover-bg: #055a8c; /* Темно-синий при наведении */
+  --dropdown-button-hover-text: white;
+}
+
+/* Тёмная тема */
+.dark-theme {
+  --dropdown-button-bg: #4ecca3; /* Зеленый фон кнопки "Update" */
+  --dropdown-button-text: black;
+  --dropdown-button-hover-bg: #3aa98a;
+  --dropdown-button-hover-text: black;
+}
+
+.dropdown {
+  position: absolute;
+  z-index: 100000;
+  top: 67px;
+  right: 7px;
+  width: 20vw;
+  display: flex;
+  flex-flow: column;
+  background-color: inherit; /* ✅ Наследуем цвет фона от темы */
+  color: inherit; /* ✅ Наследуем цвет текста */
+  border: 1px solid var(--border-color);
+  border-radius: 0 0 10px 10px;
+  user-select: none;
+
+  .dropdown-head {
+    flex-flow: column;
+    p {
+      color: inherit;
+    }
+  }
+
+  .button-div {
+    width: 100%;
+
+    a {
+      width: 100%;
+    }
+
+    button {
+      width: 100%;
+      padding: 7px;
+      border: 1px solid var(--border-color);
+      background-color: var(--dropdown-button-bg); /* ✅ Новый цвет только для кнопки "Update" */
+      color: var(--dropdown-button-text) !important;
+      transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+    }
+
+    button:hover {
+      background-color: var(--dropdown-button-hover-bg);
+      color: var(--dropdown-button-hover-text) !important;
+    }
+  }
+}

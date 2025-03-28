@@ -1,0 +1,24 @@
+:root {
+    --theme-bg-light: #f6f6f6;
+    --theme-text-light: #2b2024;
+    --theme-bg-dark: #232931;
+    --theme-text-dark: #eeeeee;
+  }
+  
+  body.light-theme {
+    background-color: var(--theme-bg-light);
+    color: var(--theme-text-light);
+  }
+  
+  body.dark-theme {
+    background-color: var(--theme-bg-dark);
+    color: var(--theme-text-dark);
+  }
+  
+  .navbar,
+  .sidebar,
+  .footer {
+    background-color: inherit;
+    color: inherit;
+  }
+  

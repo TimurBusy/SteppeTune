@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player</title>
+    <link rel="stylesheet" href="css\main.css">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Text:wght@300;400;600&display=swap" rel="stylesheet">
+    
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <h1>SteppeTune</h1>
+        </div>
+        <nav class="menu">
+            <p>MENU</p>
+            <a href="#" class="active"><span>🏠</span> Explore</a>
+            <a href="#"><span>🎵</span> Genre</a>
+            <a href="#"><span>🎙️</span> Podcast</a>
+        </nav>
+        <nav class="library">
+            <p>MY LIBRARY</p>
+            <a href="#"><span>❤️</span> Liked</a>
+            <a href="#"><span>📀</span> Albums</a>
+            <a href="#"><span>🎧</span> Recent Played</a>
+        </nav>
+        <nav class="playlist">
+            <p>PLAYLIST</p>
+            <a href="#"><span>➕</span> Create Playlist</a>
+            <a href="#"><span>🎼</span> My Playlist #1</a>
+            <a href="#"><span>🎼</span> My Playlist #2</a>
+            <a href="#"><span>🎼</span> My Playlist #3</a>
+            <a href="#"><span>🎼</span> My Playlist #4</a>
+            <a href="#"><span>🎼</span> My Playlist #5</a>
+        </nav>
+    </div>    
+
+    <div class="hero-section">
+        <div class="overlay"></div>
+        <div class="top-bar">
+            <input type="text" class="search-bar" placeholder="Type here to search music, artist, ...">
+            <div class="user-profile">
+                <span>Welcome, Maria ▼</span>
+                <img src="images\photo_2025-01-27_00-04-51.jpg" alt="User Profile">
+                <div class="settings-icon">⚙️</div>
+            </div>
+        </div>
+        <div class="header-content">
+            <h1>The Final Frontier</h1>
+            <p>Bones</p>
+            <div class="buttons">
+                <button class="btn">Listen Now</button>
+                <button class="btn-outline">Add to my list</button>
+            </div>
+            <a href="#" class="more-music">Play more music from this artist →</a>
+        </div>
+        <p class="plays-info">+50M Plays</p>
+    </div>
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar">
+            <div class="progress" id="progress"></div>
+        </div>
+    </div>
+    <div class="playlist-section">
+        <p class="playlist-title">Music We Think You'd Like</p>
+        <div class="playlist-container">
+            <div class="playlist-item"><img src="images\photo_2025-01-27_00-04-51.jpg" alt="Song 1"><p><b>Piece Of Me</b><br>Jim Kirk</p></div>
+            <div class="playlist-item"><img src="images/singing.jpg" alt="Song 2"><p><b>Bright</b><br>Leonard Nimoy</p></div>
+            <div class="playlist-item"><img src="images/hero-img.jpg" alt="Song 3"><p><b>Relate</b><br>Skywalker</p></div>
+            <div class="playlist-item"><img src="images/v207_606.png" alt="Song 4"><p><b>The Final Frontier</b><br>Bones</p></div>
+            <div class="playlist-item"><img src="images\album-cover.jpg" alt="Song 5"><p><b>Piece Of Me</b><br>Jim Kirk</p></div>
+            <div class="playlist-item"><img src="images\photo_2025-01-27_00-05-18.jpg" alt="Song 5"><p><b>Piece Of Me</b><br>Jim Kirk</p></div>
+        </div>
+        <div class="scroll-buttons">
+            <button class="scroll-left">◄</button>
+            <button class="scroll-right">►</button>
+        </div>        
+    </div>
+
+    <p id="user-email"></p>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // Декодируем токен (если API позволяет)
+        const response = await fetch('http://localhost:5000/me', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            document.querySelector('#user-email').textContent = `Welcome, ${result.email}`;
+        } else {
+            window.location.href = 'login.html'; // Если токен недействителен
+        }
+        });
+        
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+
+        progressBar.addEventListener('click', (e) => {
+            const barWidth = progressBar.clientWidth;
+            const clickX = e.offsetX;
+            const progressPercent = (clickX / barWidth) * 100;
+            progress.style.width = progressPercent + '%';
+        });
+        const playlistContainer = document.querySelector('.playlist-container');
+        
+        const scrollLeft = document.querySelector('.scroll-left');
+        const scrollRight = document.querySelector('.scroll-right');
+
+        scrollLeft.addEventListener('click', () => {
+            playlistContainer.scrollBy({ left: -300, behavior: 'smooth' });
+        });
+
+        scrollRight.addEventListener('click', () => {
+            playlistContainer.scrollBy({ left: 300, behavior: 'smooth' });
+        });
+
+    </script>
+</body>
+</html>

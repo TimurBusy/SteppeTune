@@ -1,0 +1,60 @@
+/* Цвета по теме */
+:root {
+  --brand-bg: #f1f1f1; /* Фон логотипа в светлой теме */
+  --brand-text: #333; /* Цвет текста */
+  --brand-shadow: rgba(0, 0, 0, 0.2); /* Тень */
+}
+
+/* Тёмная тема */
+.dark-theme {
+  --brand-bg: #2b2b2b; /* Темный фон */
+  --brand-text: #ffffff; /* Белый текст */
+  --brand-shadow: rgba(255, 255, 255, 0.2); /* Светлая тень */
+}
+
+@font-face {
+  font-family: 'RoadRage';
+  src: url('../../assets/fonts/RoadRage.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+
+  a {
+    display: flex;
+    align-items: center;
+    background-color: var(--brand-bg); /* ✅ Фон теперь зависит от темы */
+    box-shadow: 0 3px 3px -2px var(--brand-shadow),
+                0 3px 4px 0 var(--brand-shadow),
+                0 1px 8px 0 var(--brand-shadow);
+    padding: 5px 10px;
+    border-radius: 20px;
+    color: var(--brand-text); /* ✅ Цвет текста меняется */
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+  }
+
+  h1 {
+    font-family: 'RoadRage', sans-serif;
+    letter-spacing: 5px;
+    color: var(--brand-text); /* ✅ Текст теперь меняет цвет */
+  }
+
+  img {
+    width: 30px;
+    height: auto;
+    margin-right: 15px;
+    margin-bottom: 10px;
+    transform: rotateX(180deg) translateY(-4px);
+  }
+}
+
+/* Убираем логотип на маленьких экранах */
+@media only screen and (max-width: 350px) {
+  .brand {
+    display: none;
+  }
+}

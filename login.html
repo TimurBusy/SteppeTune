@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SteppeTune</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="cursor"></div>
+    
+    <!-- Навигация -->
+    <header>
+        <div class="logo">
+            <img src="images/image 9.png" alt="Описание" class="img">
+            <a href="пробный2.html">SteppeTune</a>
+        </div>
+        <nav>
+            <a href="#">Discover</a>
+            <a href="login.html">Join</a>
+        </nav>
+    </header>
+
+    <!-- Регистрация -->
+    
+    <section class="signup">
+        <h2>Login to SteppeTune</h2>
+        <form>
+            <input type="email" placeholder="Email" id="email">
+            <input type="password" placeholder="Password" id="password">
+            <button type="submit">Login</button>
+        </form>
+    </section>
+
+    <!-- Подвал -->
+    <footer>
+        <p>About Us | Contact</p>
+        <div class="socials">
+            <a href="main.html"><img src="icons copy/facebook.png" alt="Facebook"></a>
+            <a href="main.html"><img src="icons copy//instagram.png" alt="Instagram"></a>
+            <a href="main.html"><img src="icons copy/youtube.png" alt="YouTube"></a>
+            <a href="main.html"><img src="icons copy/twitter.png" alt="Twitter"></a>
+            <a href="main.html"><img src="icons copy/itunes.png" alt="iTunes"></a>
+            <a href="main.html"><img src="icons copy/spotify.png" alt="Spotify"></a>
+            <a href="main.html#mail"><img src="icons copy/mail.png" alt="Telegram"></a>
+        </div>
+    </footer>
+
+
+    <script>
+        document.querySelector('.signup form').addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const email = document.querySelector('#email').value;
+        const password = document.querySelector('#password').value;
+
+        try {
+            // 🔹 Очищаем старые данные перед входом (если вдруг остались)
+            localStorage.removeItem("userId");
+            localStorage.removeItem("token");
+
+            // 🔹 Отправляем запрос на сервер (http://localhost:5000/login)
+            const response = await fetch('http://localhost:5000/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (!response.ok) {
+                throw new Error("Ошибка авторизации");
+            }
+
+            const result = await response.json(); // ✅ Получаем ответ от сервера
+
+            // 🔹 Проверяем, есть ли `token` и `userId`
+            if (result.token && result.userId) {
+                console.log("✅ Успешный вход, userId:", result.userId);
+                
+                // ✅ Сохраняем данные в `localStorage`
+                localStorage.setItem('token', result.token);
+                localStorage.setItem('userId', result.userId);
+
+                console.log("🔹 Сохранён userId перед редиректом:", localStorage.getItem("userId"));
+
+                // 🔄 Перенаправляем на другой хост (http://localhost:5000/home)
+                setTimeout(() => {
+                    window.location.href = `http://localhost:3000/home?token=${result.token}&userId=${result.userId}`;
+                }, 500); // Ждём 500 мс перед редиректом
+
+            } else {
+                alert("Ошибка: неверные учетные данные");
+            }
+        } catch (error) {
+            console.error("❌ Ошибка входа:", error);
+            alert(error.message);
+        }
+    });
+
+
+    
+        // Находим элемент кастомного курсора
+         const cursor = document.querySelector('.cursor');
+
+         let mouseX = 0, mouseY = 0;
+         let cursorX = 0, cursorY = 0;
+
+         // Обновляем координаты курсора
+         document.addEventListener('mousemove', (e) => {
+             mouseX = e.clientX;
+             mouseY = e.clientY;
+         });
+
+         function animateCursor() {
+             // Запаздывающий эффект (плавно догоняет курсор)
+             cursorX += (mouseX - cursorX) * 0.1;
+             cursorY += (mouseY - cursorY) * 0.1;
+
+             cursor.style.left = `${cursorX}px`;
+             cursor.style.top = `${cursorY}px`;
+
+             requestAnimationFrame(animateCursor);
+         }
+
+         animateCursor(); // Запуск анимации
+
+         // Добавляем эффект волны при клике
+         document.addEventListener('click', () => {
+             cursor.classList.add('click');
+             setTimeout(() => {
+                 cursor.classList.remove('click');
+             }, 300);
+         });
+         
+    </script>
+</body>
+</html>

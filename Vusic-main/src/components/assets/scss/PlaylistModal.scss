@@ -1,0 +1,106 @@
+:root {
+    --primary-color: #07689f; // Синий
+    --input-text-color: black;
+    --input-focus-color: #07689f; // Синий бордер при фокусе
+    --button-text-color: white;
+  }
+  
+  .dark-theme {
+    --primary-color: #4ecca3; // Зелёный
+    --input-text-color: white;
+    --input-focus-color: #4ecca3; // Зелёный бордер при фокусе
+    --button-text-color: black;
+  }
+  
+  .playlist-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-color);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+    width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+  
+    input,
+    textarea {
+      color: var(--input-text-color);
+      background: transparent;
+      border: none;
+      outline: none;
+      width: 100%;
+      padding: 8px 0;
+      border-bottom: 2px solid var(--border-color);
+      transition: border-color 0.3s ease;
+    }
+  
+    input:focus,
+    textarea:focus {
+      border-bottom: 2px solid var(--input-focus-color);
+    }
+  
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--input-text-color);
+      opacity: 0.7;
+    }
+  }
+  
+  .track-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 10px;
+  }
+  
+  .track-item {
+    padding: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    color: var(--input-text-color);
+  }
+  
+  .track-item.selected {
+    background: var(--primary-color);
+    color: var(--button-text-color); // Чёрный или белый, по теме
+    font-weight: bold;
+  }
+  
+  /* Кнопки */
+  .create-btn,
+  .save-btn,
+  .delete-btn {
+    background-color: var(--primary-color) !important;
+    color: var(--button-text-color) !important;
+    margin-top: 10px;
+    margin-right: 10px;
+  }
+
+/* MUI стандартный input underline — для variant="standard" */
+.MuiInput-underline::before {
+    border-bottom: 1px solid var(--border-color) !important; /* обычная линия */
+  }
+  
+  .MuiInput-underline:hover:not(.Mui-disabled):before {
+    border-bottom: 1px solid var(--border-color) !important; /* при наведении */
+  }
+  
+  .MuiInput-underline::after {
+    border-bottom: 2px solid var(--input-focus-color) !important; /* при фокусе */
+  }
+  
+  /* Цвет текста и плейсхолдера */
+  .MuiInputBase-input {
+    color: var(--input-text-color) !important;
+  }
+  
+  .MuiInputLabel-root {
+    color: var(--input-focus-color) !important;
+  }
+  

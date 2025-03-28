@@ -1,0 +1,18 @@
+.hb {
+  display: inline-block;
+  margin: 5px 0;
+  width: 100%;
+
+  button {
+    width: 100%;
+    background-color: transparent; // Убираем фон кнопки
+    color: inherit; // ✅ Наследуем цвет из родителя (темы)
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    .MuiButton-startIcon {
+      color: #07689f !important; // ✅ Иконка ВСЕГДА синяя
+    }
+  }
+}

@@ -1,0 +1,40 @@
+/* Цвета по теме */
+:root {
+  --profile-icon-color: #07689f; /* 🔵 Синий цвет иконки в светлой теме */
+}
+
+/* Тёмная тема */
+.dark-theme {
+  --profile-icon-color: #4ecca3; /* 🟢 Зеленый цвет иконки в темной теме */
+}
+
+.dropdown-profile {
+  position: absolute;
+  z-index: 100000;
+  top: 67px;
+  right: 7px;
+  border-radius: 0 0 10px 10px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  color: var(--text-color); /* ✅ Цвет текста зависит от темы */
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+
+  .hb {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    color: var(--text-color); /* ✅ Исправление цвета текста */
+
+    &:hover {
+      background-color: var(--button-hover-bg);
+      color: var(--button-hover-text);
+    }
+  }
+
+  /* ✅ Делаем иконку динамической */
+  .MuiSvgIcon-root {
+    color: var(--profile-icon-color) !important; /* 🟢/🔵 Меняем цвет в зависимости от темы */
+  }
+}

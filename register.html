@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SteppeTune</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="cursor"></div>
+    
+    <!-- Навигация -->
+    <header>
+        <div class="logo">
+            <img src="images/image 9.png" alt="Описание" class="img">
+            <a href="пробный2.html">SteppeTune</a>
+        </div>
+        <nav>
+            <a href="#">Discover</a>
+            <a href="login.html">Join</a>
+        </nav>
+    </header>
+
+    <!-- Регистрация -->
+    <section class="signup">
+        <h2>Start Streaming <span>Now!</span></h2>
+        <form>
+            <input type="text" placeholder="Name">
+            <input type="email" placeholder="Email">
+            <input type="password" placeholder="Password">
+            <button type="submit">Sign Up</button>
+        </form>
+    </section>
+
+    <!-- Подвал -->
+    <footer>
+        <p>About Us | Contact</p>
+        <div class="socials">
+            <a href="main.html"><img src="icons copy/facebook.png" alt="Facebook"></a>
+            <a href="main.html"><img src="icons copy//instagram.png" alt="Instagram"></a>
+            <a href="main.html"><img src="icons copy/youtube.png" alt="YouTube"></a>
+            <a href="main.html"><img src="icons copy/twitter.png" alt="Twitter"></a>
+            <a href="main.html"><img src="icons copy/itunes.png" alt="iTunes"></a>
+            <a href="main.html"><img src="icons copy/spotify.png" alt="Spotify"></a>
+            <a href="main.html#mail"><img src="icons copy/mail.png" alt="Telegram"></a>
+        </div>
+    </footer>
+
+
+    <script>
+        document.querySelector('.signup form').addEventListener('submit', async function (event) {
+                event.preventDefault(); // Отмена стандартного поведения
+
+                const name = document.querySelector('input[placeholder="Name"]').value;
+                const email = document.querySelector('input[placeholder="Email"]').value;
+                const password = document.querySelector('input[placeholder="Password"]').value;
+
+                const response = await fetch('http://localhost:5000/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const result = await response.json();
+                alert(result.message);
+            });
+
+    
+        // Находим элемент кастомного курсора
+         const cursor = document.querySelector('.cursor');
+
+         let mouseX = 0, mouseY = 0;
+         let cursorX = 0, cursorY = 0;
+
+         // Обновляем координаты курсора
+         document.addEventListener('mousemove', (e) => {
+             mouseX = e.clientX;
+             mouseY = e.clientY;
+         });
+
+         function animateCursor() {
+             // Запаздывающий эффект (плавно догоняет курсор)
+             cursorX += (mouseX - cursorX) * 0.1;
+             cursorY += (mouseY - cursorY) * 0.1;
+
+             cursor.style.left = `${cursorX}px`;
+             cursor.style.top = `${cursorY}px`;
+
+             requestAnimationFrame(animateCursor);
+         }
+
+         animateCursor(); // Запуск анимации
+
+         // Добавляем эффект волны при клике
+         document.addEventListener('click', () => {
+             cursor.classList.add('click');
+             setTimeout(() => {
+                 cursor.classList.remove('click');
+             }, 300);
+         });
+         
+    </script>
+</body>
+</html>

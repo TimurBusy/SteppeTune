@@ -1,0 +1,83 @@
+/* Цвета по теме */
+:root {
+  --search-bg: white; /* Фон поля в светлой теме */
+  --search-text: black; /* Текст в светлой теме */
+  --search-border: #e0e0e0; /* Граница в светлой теме */
+  --search-placeholder: gray; /* Цвет placeholder */
+}
+
+/* Тёмная тема */
+.dark-theme {
+  --search-bg: #232931; /* Темный фон в темной теме */
+  --search-text: white; /* Белый текст */
+  --search-border: #444; /* Темная граница */
+  --search-placeholder: #bbb; /* Placeholder в темной теме */
+}
+
+.SearchBar {
+  flex: 1;
+  padding: 0;
+  position: relative;
+  margin: 0 50px;
+  transition: margin .15s ease-in-out;
+
+  .search-container {
+    padding: 0;
+    background-color: var(--search-bg); /* ✅ Фон динамический */
+    border-radius: 10px;
+    height: 2.5rem;
+    flex-grow: 1;
+    border: 1px solid var(--search-border); /* ✅ Граница динамическая */
+  }
+
+  input {
+    background-color: transparent;
+    width: 100%;
+    height: 100%;
+    line-height: 2.5rem;
+    padding: 11px 45px;
+    border-radius: 10px;
+    outline: none;
+    border: none;
+    color: var(--search-text); /* ✅ Текст меняется */
+  }
+
+  input::placeholder {
+    color: var(--search-placeholder); /* ✅ Placeholder меняется */
+  }
+
+  .SearchBar-customPlaceholderOpen {
+    cursor: text;
+    position: absolute;
+    width: 100%;
+  }
+
+  .SearchBar-customPlaceholderClose {
+    cursor: pointer;
+    position: absolute;
+    right: 10px;
+    color: var(--search-text); /* ✅ Цвет закрытия тоже меняется */
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--search-text); /* ✅ Иконка тоже меняется */
+  }
+
+  p {
+    color: var(--search-placeholder); /* ✅ Исправляем цвет */
+  }
+}
+
+.open {
+  margin: 0;
+}
+
+@media only screen and (max-width: 215px) {
+  .hide {
+    display: none;
+  }
+}

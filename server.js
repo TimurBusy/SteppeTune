@@ -3,6 +3,8 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const { spawnSync } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
@@ -22,7 +24,8 @@ const pool = new Pool({
 const app = express();
 const port = 5000;
 
-
+const basePath = __dirname;
+const pythonScript = path.join(basePath, 'fingerprint_handler.py');
 
 app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -249,19 +252,89 @@ app.post('/api/tracks', upload.fields([{ name: 'img', maxCount: 1 }, { name: 'mu
         return res.status(400).json({ message: "Missing required fields" });
     }
 
-    try {
-        const newTrack = await pool.query(
-            `INSERT INTO tracks (name, author_name, img, lang, timesPlayed, type, musicName, owner_id) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-            [name, author_name, req.files['img'][0].filename, lang, timesPlayed, type, req.files['musicName'][0].filename, owner_id]
-        );
+    const audioFile = req.files["musicName"][0];
+    const imgFile = req.files["img"][0];
+    const audioPath = path.join(__dirname, "uploads", audioFile.filename);
+    const imgPath = path.join(__dirname, "uploads", imgFile.filename);
 
-        res.status(201).json(newTrack.rows[0]);
-    } catch (error) {
-        console.error("Ошибка при добавлении трека:", error);
-        res.status(500).json({ message: "Ошибка сервера" });
+    const fs = require('fs');
+
+    // Ждём пока файл действительно появится (до 2 секунд)
+    let waitCount = 0;
+    while (!fs.existsSync(audioPath) || fs.statSync(audioPath).size === 0) {
+        if (waitCount > 20) break; // максимум 2 секунды
+        await new Promise(resolve => setTimeout(resolve, 100)); // 100 мс пауза
+        waitCount++;
     }
+
+    console.log("📁 Audio file path:", audioPath);
+    console.log("📏 Audio file size:", fs.statSync(audioPath).size);
+
+
+    // 🔍 Шаг 1: Проверка на плагиат
+    const checkResult = spawnSync('python', [pythonScript, 'check', audioPath], { encoding: 'utf-8' });
+
+    console.log("🎧 fingerprint stdout:", checkResult.stdout);
+    console.log("⚠️ fingerprint stderr:", checkResult.stderr);
+    console.log("📟 fingerprint exit code:", checkResult.status);
+
+    if (checkResult.stdout.includes("DUPLICATE")) {
+      fs.unlinkSync(audioPath);
+      fs.unlinkSync(imgPath);
+      return res
+        .status(409)
+        .json({ message: "❌ Плагиат: трек уже существует" });
+    }
+
+    // ✅ Шаг 2: Добавляем трек в таблицу tracks
+    let trackId;
+    try {
+      const newTrack = await pool.query(
+        `INSERT INTO tracks (name, author_name, img, lang, timesPlayed, type, musicName, owner_id) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+        [
+          name,
+          author_name,
+          imgFile.filename,
+          lang,
+          timesPlayed,
+          type,
+          audioFile.filename,
+          owner_id,
+        ]
+      );
+      trackId = newTrack.rows[0].id;
+    } catch (error) {
+      console.error("❌ Ошибка при добавлении трека:", error);
+      fs.unlinkSync(audioPath);
+      fs.unlinkSync(imgPath);
+      return res
+        .status(500)
+        .json({ message: "❌ Ошибка сервера при добавлении трека" });
+    }
+
+    // 📦 Шаг 3: Добавление fingerprint
+    const addResult = spawnSync('python', [pythonScript, 'add', audioPath, trackId.toString()], { encoding: 'utf-8' });
+
+    console.log("📤 fingerprint_add stdout:", addResult.stdout);
+    console.log("⚠️ fingerprint_add stderr:", addResult.stderr);
+    console.log("📟 fingerprint_add exit code:", addResult.status);
+
+    if (!addResult.stdout.includes("OK")) {
+      await pool.query("DELETE FROM tracks WHERE id = $1", [trackId]);
+      fs.unlinkSync(audioPath);
+      fs.unlinkSync(imgPath);
+      return res
+        .status(500)
+        .json({ message: "❌ Ошибка добавления fingerprint" });
+    }
+
+    return res
+      .status(201)
+      .json({ message: "✅ Трек успешно добавлен", trackId });
 });
+
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

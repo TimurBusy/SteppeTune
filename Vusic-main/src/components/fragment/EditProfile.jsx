@@ -141,9 +141,17 @@ function EditProfile() {
                 <div key={track.id} className="track-card">
                   <img
                     className="track-cover"
-                    src={`http://localhost:5000/uploads/${track.img}`}
+                    src={
+                      track.img_ipfs
+                        ? track.img_ipfs.replace(
+                            "ipfs://",
+                            "https://w3s.link/ipfs/"
+                          )
+                        : `http://localhost:5000/uploads/${track.img}`
+                    }
                     alt={track.name}
                   />
+
                   <p className="track-name">{track.name}</p>
                   <Button variant="outlined" color="primary" size="small">
                     Edit

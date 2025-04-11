@@ -7,7 +7,7 @@ import PauseIcon from '@material-ui/icons/Pause';
 import VolumeUpIcon from '@material-ui/icons/VolumeUp';
 import VolumeOffIcon from '@material-ui/icons/VolumeOff';
 import Slider from "@material-ui/core/Slider";
-import { Avatar, Modal, Backdrop, Fade } from "@material-ui/core"; // ✅ Импортируем Modal
+import { Avatar, Modal, Backdrop, Fade } from "@material-ui/core";
 import ControlsToggleButton from "./ControlsToggleButton";
 import Name from "./Name";
 import { ThemeContext } from "../../api/Theme";
@@ -17,7 +17,7 @@ import Button from "@material-ui/core/Button";
 function FooterMusicPlayer() {
     const useStyle = useContext(ThemeContext);
     const audioElement = useRef();
-    const { playing } = useSelector(state => state.musicReducer); // ✅ Получаем текущий трек из Redux
+    const { playing } = useSelector(state => state.musicReducer);
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [isRepeat, setRepeat] = useState(false);
@@ -25,148 +25,187 @@ function FooterMusicPlayer() {
     const [volume, setVolume] = useState(50);
     const [duration, setDuration] = useState(0);
     const [currTime, setCurrTime] = useState(0);
-    
-    const [open, setOpen] = useState(false); // ✅ State для модального окна
+    const [open, setOpen] = useState(false);
 
     const pointer = { cursor: "pointer", color: useStyle.theme };
 
     useEffect(() => {
-        if (playing) {
-            console.log("🎵 Текущий трек в Redux:", playing);
+      async function loadAndPlayAudio() {
+        if (!playing || !playing.musicname) return;
 
-            if (!playing.musicname) { 
-                console.error("❌ Ошибка: musicname отсутствует в объекте playing");
-                return;
-            }
+        const ipfsUrl = playing.music_ipfs
+          ? playing.music_ipfs.replace("ipfs://", "https://w3s.link/ipfs/")
+          : null;
+        const localUrl = `http://localhost:5000/uploads/${playing.musicname}`;
+        const audioUrl = ipfsUrl || localUrl;
 
-            setIsPlaying(true);
-            if (audioElement.current) {
-                const audioUrl = `http://localhost:5000/uploads/${playing.musicname}`;
-                console.log("🎵 Загружаем аудиофайл:", audioUrl);
-                audioElement.current.src = audioUrl;
-                audioElement.current.play().catch(error => console.error("❌ Ошибка при воспроизведении:", error));
-            }
+        const fileExt = (audioUrl.split('.').pop() || '').toLowerCase();
+        const mimeType = fileExt === 'mp3' ? 'audio/mpeg' :
+                         fileExt === 'wav' ? 'audio/wav' : 'audio/*';
+
+        console.log("🔗 Загружаем с:", audioUrl);
+
+        const audio = audioElement.current;
+        if (!audio) return;
+
+        const source = audio.querySelector("source");
+        if (source) {
+          source.src = audioUrl;
+          source.type = mimeType;
+        } else {
+          audio.src = audioUrl;
+          audio.type = mimeType;
         }
+
+        try {
+          audio.pause();
+          audio.load();
+          await audio.play();
+          setIsPlaying(true);
+        } catch {
+          setIsPlaying(false);
+        }
+      }
+
+      loadAndPlayAudio();
     }, [playing]);
 
     useEffect(() => {
-        if (audioElement.current) {
-            audioElement.current.loop = isRepeat;
-            audioElement.current.volume = volume / 100;
-            audioElement.current.muted = isVolumeMuted;
-            
-            audioElement.current.onloadedmetadata = () => {
-                setDuration(audioElement.current.duration);
-            };
+        if (!audioElement.current) return;
 
-            audioElement.current.ontimeupdate = () => {
-                setCurrTime(audioElement.current.currentTime);
-            };
+        audioElement.current.loop = isRepeat;
+        audioElement.current.volume = volume / 100;
+        audioElement.current.muted = isVolumeMuted;
 
-            audioElement.current.onended = () => {
-                setIsPlaying(false);
-            };
-        }
+        audioElement.current.onloadedmetadata = () => {
+            setDuration(audioElement.current.duration);
+        };
+        audioElement.current.ontimeupdate = () => {
+            setCurrTime(audioElement.current.currentTime);
+        };
+        audioElement.current.onended = () => {
+            setIsPlaying(false);
+        };
     }, [isRepeat, volume, isVolumeMuted]);
 
-    function togglePlayPause() {
-        if (isPlaying) {
-            audioElement.current.pause();
-        } else {
-            audioElement.current.play();
-        }
+    const togglePlayPause = () => {
+        const audio = audioElement.current;
+        if (!audio) return;
+        if (isPlaying) audio.pause();
+        else audio.play();
         setIsPlaying(!isPlaying);
-    }
+    };
 
-    function handleSeekChange(event, newValue) {
-        if (audioElement.current) {
+    const handleSeekChange = (e, newValue) => {
+        const audio = audioElement.current;
+        if (audio) {
             const newTime = (newValue * duration) / 100;
-            audioElement.current.currentTime = newTime;
+            audio.currentTime = newTime;
         }
-    }
+    };
 
-    function handleVolumeChange(event, newValue) {
+    const handleVolumeChange = (e, newValue) => {
         setVolume(newValue);
-    }
+    };
 
-    function formatTime(secs) {
+    const formatTime = (secs) => {
         const minutes = Math.floor(secs / 60);
         const seconds = Math.floor(secs % 60);
         return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-    }
+    };
 
     return (
-        <>
-            <div style={useStyle.component} className={"footer-player"}>
-                <audio ref={audioElement} preload="metadata" />
+      <>
+        <div style={useStyle.component} className={"footer-player"}>
+          <audio ref={audioElement} preload="metadata">
+            <source src="" type="" />
+          </audio>
 
-                <div className="playback">
-                    <Slider
-                        style={{ color: useStyle.theme }}
-                        className={"playback-completed"}
-                        value={(currTime / duration) * 100 || 0}
-                        onChange={handleSeekChange}
-                    />
-                </div>
+          <div className="playback">
+            <Slider
+              style={{ color: useStyle.theme }}
+              className={"playback-completed"}
+              value={(currTime / duration) * 100 || 0}
+              onChange={handleSeekChange}
+            />
+          </div>
 
-                {/* ✅ Кликаем по обложке - открываем модальное окно */}
-                <Button onClick={() => setOpen(true)} 
-                    startIcon={
-                        <Avatar variant="square" 
-                            src={`http://localhost:5000/uploads/${playing?.img}`} 
-                            alt={playing?.name} 
-                            style={{ cursor: "pointer" }} 
-                        />
-                    }
-                    className="curr-music-container">
-                    <div className="curr-music-details">
-                        <Name name={playing?.name || "No Track"} className={"song-name"} length={playing?.name?.length || 0} />
-                        <Name name={playing?.author_name || ""} className={"author-name"} length={playing?.author_name?.length || 0} />
-                    </div>
-                </Button>
-
-                <div className="playback-controls">
-                    <ControlsToggleButton style={pointer} type={"repeat"}
-                                          defaultIcon={<RepeatIcon fontSize={"large"} />}
-                                          changeIcon={<RepeatOneIcon fontSize={"large"} />}
-                                          onClicked={() => setRepeat(!isRepeat)} />
-
-                    <ControlsToggleButton style={pointer} type={"play-pause"}
-                                          defaultIcon={<PlayArrowIcon fontSize={"large"} />}
-                                          changeIcon={<PauseIcon fontSize={"large"} />}
-                                          onClicked={togglePlayPause} />
-
-                    <ControlsToggleButton style={pointer} type={"volume"}
-                                          defaultIcon={<VolumeUpIcon />}
-                                          changeIcon={<VolumeOffIcon />}
-                                          onClicked={() => setVolumeMuted(!isVolumeMuted)} />
-                </div>
-
-                <div className="playback-widgets">
-                    <p>{formatTime(currTime)} / {formatTime(duration)}</p>
-                    <Slider style={{ color: useStyle.theme }} value={volume} onChange={handleVolumeChange} />
-                </div>
+          <Button
+            onClick={() => setOpen(true)}
+            startIcon={
+              <Avatar
+                variant="square"
+                src={
+                  playing?.img_ipfs
+                    ? playing.img_ipfs.replace("ipfs://", "https://w3s.link/ipfs/")
+                    : `http://localhost:5000/uploads/${playing?.img}`
+                }
+                alt={playing?.name}
+              />
+            }
+            className="curr-music-container"
+          >
+            <div className="curr-music-details">
+              <Name name={playing?.name || "No Track"} className={"song-name"} length={playing?.name?.length || 0} />
+              <Name name={playing?.author_name || ""} className={"author-name"} length={playing?.author_name?.length || 0} />
             </div>
+          </Button>
 
-            {/* ✅ Модальное окно с увеличенной обложкой */}
-            <Modal
-                open={open}
-                onClose={() => setOpen(false)}
-                closeAfterTransition
-                BackdropComponent={Backdrop}
-                BackdropProps={{ timeout: 500 }}
-            >
-                <Fade in={open}>
-                    <div className="modal-container">
-                        <img 
-                            src={`http://localhost:5000/uploads/${playing?.img}`} 
-                            alt={playing?.name} 
-                            className="modal-image"
-                        />
-                    </div>
-                </Fade>
-            </Modal>
-        </>
+          <div className="playback-controls">
+            <ControlsToggleButton
+              style={pointer}
+              type={"repeat"}
+              defaultIcon={<RepeatIcon fontSize={"large"} />}
+              changeIcon={<RepeatOneIcon fontSize={"large"} />}
+              onClicked={() => setRepeat(!isRepeat)}
+            />
+            <ControlsToggleButton
+              style={pointer}
+              type={"play-pause"}
+              defaultIcon={<PlayArrowIcon fontSize={"large"} />}
+              changeIcon={<PauseIcon fontSize={"large"} />}
+              onClicked={togglePlayPause}
+            />
+            <ControlsToggleButton
+              style={pointer}
+              type={"volume"}
+              defaultIcon={<VolumeUpIcon />}
+              changeIcon={<VolumeOffIcon />}
+              onClicked={() => setVolumeMuted(!isVolumeMuted)}
+            />
+          </div>
+
+          <div className="playback-widgets">
+            <p>{formatTime(currTime)} / {formatTime(duration)}</p>
+            <Slider
+              style={{ color: useStyle.theme }}
+              value={volume}
+              onChange={handleVolumeChange}
+            />
+          </div>
+        </div>
+
+        <Modal
+          open={open}
+          onClose={() => setOpen(false)}
+          closeAfterTransition
+          BackdropComponent={Backdrop}
+          BackdropProps={{ timeout: 500 }}
+        >
+          <Fade in={open}>
+            <div className="modal-container">
+              <img
+                src={
+                  playing?.img_ipfs
+                    ? playing.img_ipfs.replace("ipfs://", "https://w3s.link/ipfs/")
+                    : `http://localhost:5000/uploads/${playing?.img}`
+                }
+                alt={playing?.name}
+              />
+            </div>
+          </Fade>
+        </Modal>
+      </>
     );
 }
 

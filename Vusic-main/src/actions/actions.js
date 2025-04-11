@@ -8,10 +8,6 @@ export const setCurrentPlaying = (curr_music) => ({
     payload: curr_music
 });
 
-export const setBannerOpen = (isOpen) => ({
-    type: "SET_BANNER_OPEN",
-    payload: isOpen
-});
 
 export const increaseTimesPlayed = (id) => ({
     type: "INC_TIMES_PLAYED",

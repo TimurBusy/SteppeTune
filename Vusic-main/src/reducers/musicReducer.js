@@ -1,7 +1,6 @@
 export const initialState = {
     playlists: [],  // ✅ Загружается с сервера, а не из musicDB
     playing: null,  
-    bannerOpen: false,
     search: null,
     musicLang: []  // ✅ Используем массив для хранения языков
 };
@@ -18,12 +17,6 @@ const musicReducer = (state = initialState, action) => {
             return {
                 ...state,
                 playing: action.payload
-            };
-
-        case "SET_BANNER_OPEN":
-            return {
-                ...state,
-                bannerOpen: action.payload
             };
 
         case "INC_TIMES_PLAYED":

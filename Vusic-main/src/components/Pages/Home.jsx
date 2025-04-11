@@ -12,7 +12,6 @@ import Profile from "./Profile";
 import AddMusic from "../fragment/AddMusic";
 import EditProfile from "../fragment/EditProfile";
 import FooterSelectMusic from "../fragment/FooterSelectMusic";
-import CurrentPlayingLarge from "../fragment/CurrentPlayingLarge";
 import Search from "./Search";
 import Playlist from "../fragment/Playlist";
 import PlaylistModal from "../fragment/PlaylistModal";
@@ -62,7 +61,7 @@ function Home() {
     }, []);
 
     const useStyle = useContext(ThemeContext);
-    const { playing, bannerOpen } = useSelector(state => state.musicReducer);
+    const { playing } = useSelector(state => state.musicReducer);
 
     useEffect(() => {
         setCurrMusic(playing);
@@ -152,11 +151,7 @@ function Home() {
                         {Page}
                     </div>
                 </section>
-                {bannerOpen && (
-                    <section className="current-large-banner">
-                        <CurrentPlayingLarge />
-                    </section>
-                )}
+                
                 <React.Fragment>
                     {currMusic ? <FooterMusicPlayer music={currMusic} /> : <FooterSelectMusic />}
                     {screenSize <= 970 && <BottomNavigationMobile />}

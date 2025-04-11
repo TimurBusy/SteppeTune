@@ -43,28 +43,54 @@ function MusicCard({ music }) {
     };
 
     return (
-        <div className="music-card" onClick={handlePlay} 
-            style={useStyle?.theme?.component || { backgroundColor: "#f6f6f6", color: "#000" }} // ✅ Добавили fallback, если useStyle не загрузился
-        >
-            <div className="music-card-cover">
-                <img src={`http://localhost:5000/uploads/${music.img}`} alt={music.name} 
-                     onError={(e) => e.target.src="/fallback-image.png"} />
-                <div className="play-circle">
-                    <PlayCircleFilledWhiteIcon />
-                </div>
-            </div>
+      <div
+        className="music-card"
+        onClick={handlePlay}
+        style={
+          useStyle?.theme?.component || {
+            backgroundColor: "#f6f6f6",
+            color: "#000",
+          }
+        } // ✅ Добавили fallback, если useStyle не загрузился
+      >
+        <div className="music-card-cover">
+          <img
+            src={
+              music.img_ipfs
+                ? music.img_ipfs.replace("ipfs://", "https://w3s.link/ipfs/")
+                : `http://localhost:5000/uploads/${music.img}`
+            }
+            alt={music.name}
+            onError={(e) => {
+              console.warn("⛔️ IPFS fallback triggered");
+              e.target.src = `http://localhost:5000/uploads/${music.img}`;
+            }}
+          />
 
-            <div className="music-info">
-                <div className="music-header">
-                    <Name name={music.name} className={"song-name"} length={music.name.length} />
-                    <FavoriteIcon 
-                        onClick={toggleLike} 
-                        style={{ color: liked ? "red" : "gray", cursor: "pointer" }} 
-                    />
-                </div>
-                <Name name={music.author_name} className={"author-name"} length={music.author_name.length} />
-            </div>
+          <div className="play-circle">
+            <PlayCircleFilledWhiteIcon />
+          </div>
         </div>
+
+        <div className="music-info">
+          <div className="music-header">
+            <Name
+              name={music.name}
+              className={"song-name"}
+              length={music.name.length}
+            />
+            <FavoriteIcon
+              onClick={toggleLike}
+              style={{ color: liked ? "red" : "gray", cursor: "pointer" }}
+            />
+          </div>
+          <Name
+            name={music.author_name}
+            className={"author-name"}
+            length={music.author_name.length}
+          />
+        </div>
+      </div>
     );
 }
 

@@ -16,6 +16,8 @@ import Search from "./Search";
 import Playlist from "../fragment/Playlist";
 import PlaylistModal from "../fragment/PlaylistModal";
 import { Skeleton } from "@material-ui/lab";
+import SellTrack from "./SellTrack";
+import Marketplace from "./Marketplace";
 
 function getCurrPage(pathName) {
     switch (pathName) {
@@ -23,10 +25,14 @@ function getCurrPage(pathName) {
             return <MusicCardContainer />;
         case "/home/search":
             return <Search />;
+        case "/home/marketplace":
+            return <Marketplace />
         case "/home/profile":
             return <Profile />;
         case "/home/add":
             return <AddMusic />;
+        case "/home/sell-track":
+            return <SellTrack />;
         case "/home/edit-profile":
             return <EditProfile />;
         default:

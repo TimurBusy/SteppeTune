@@ -41,7 +41,7 @@ const Playlist = () => {
             <div className="Playlist">
                 <h3>🎵 {id === "selected" ? "Selected Tracks" : "Playlist"}</h3>
 
-                <div className="Playlist-container">
+                <div className="music-grid-container">
                     {filteredTracks.length > 0 ? (
                         filteredTracks.map(track => <MusicCard key={track.id} music={track} />)
                     ) : (

@@ -1,13 +1,26 @@
 .music-card {
   width: fit-content;
   padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease-in-out;
+  background-color: var(--card-bg) !important;
+  color: var(--text-color);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  
+
   .music-card-cover {
     position: relative;
     display: flex;
+    border-radius: 10px;
+    overflow: hidden;
+
     img {
       width: 210px;
       height: 210px;
+      object-fit: cover;
     }
+
     .play-circle {
       position: absolute;
       visibility: hidden;
@@ -16,29 +29,36 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      .MuiSvgIcon-root{
+
+      .MuiSvgIcon-root {
         font-size: 4rem;
       }
     }
 
-    .hover-img {
-      visibility: visible;
-    }
-  }
+    &:hover {
+      cursor: pointer;
 
-  .music-card-cover:hover {
-    cursor: pointer;
+      img {
+        filter: brightness(0.34);
+      }
 
-    img {
-      filter: brightness(0.34);
-    }
-
-    .play-circle {
-      color: #fff;
-      visibility: visible;
+      .play-circle {
+        color: #fff;
+        visibility: visible;
+      }
     }
   }
 }
+
+.music-grid-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: flex-start;
+  padding: 20px 40px; // 🟢 вот они — отступы слева и справа
+  box-sizing: border-box; // важно для паддингов
+}
+
 
 @media only screen and (max-width: 545px) {
   .music-card {
@@ -50,6 +70,15 @@
     }
   }
 }
+
+@media (max-width: 768px) {
+  .music-grid-container {
+    padding: 16px;
+    gap: 16px;
+    justify-content: center;
+  }
+}
+
 
 .music-info {
   display: flex;
@@ -71,4 +100,48 @@
   .MuiSvgIcon-root:hover {
     color: red; // 🔥 При наведении лайк становится красным
   }
+}
+
+.market-extras-wrapper {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  transition: background 0.3s ease;
+}
+
+.market-extras {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .buy-btn {
+    background-color: var(--button-bg) !important;
+    color: var(--button-text) !important;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+
+    &:hover {
+      background-color: var(--button-hover-bg);
+      color: var(--button-hover-text);
+    }
+
+    &:disabled {
+      background-color: #888;
+      color: white;
+    }
+  }
+}
+
+
+
+:root {
+  --card-bg: #fefefe;
+}
+
+.dark-theme {
+  --card-bg: #2c2f36;
 }

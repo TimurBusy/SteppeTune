@@ -244,6 +244,17 @@ app.get('/api/tracks', authenticateToken, async (req, res) => {
     }
 });
 
+app.get('/api/marketplace/tracks', async (req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT * FROM tracks WHERE is_for_sale = true AND is_sold = false`
+      );
+      res.status(200).json(result.rows);
+    } catch (error) {
+      console.error("❌ Ошибка получения маркетплейс треков:", error);
+      res.status(500).json({ message: "Ошибка сервера" });
+    }
+});  
 
 // ✅ Загрузка трека (изображение + музыка)
 app.post('/api/tracks', upload.fields([{ name: 'img', maxCount: 1 }, { name: 'musicName', maxCount: 1 }]), async (req, res) => {
@@ -377,10 +388,53 @@ app.post('/api/tracks', upload.fields([{ name: 'img', maxCount: 1 }, { name: 'mu
     fs.unlinkSync(imgPath);
   
     return res.status(201).json({ message: "✅ Трек добавлен в IPFS и базу", trackId });
-  });
+});
+
+// server.cjs
+app.post('/api/market/sell', async (req, res) => {
+    const { track_id, price } = req.body;
   
+    if (!track_id || !price) {
+      return res.status(400).json({ message: "❌ Отсутствуют обязательные поля" });
+    }
+  
+    try {
+      await pool.query(
+        `UPDATE tracks
+         SET is_for_sale = true, price = $1, is_sold = false, buyer_id = NULL
+         WHERE id = $2`,
+        [price, track_id]
+      );
+  
+      return res.status(200).json({ message: "✅ Трек выставлен на продажу" });
+    } catch (error) {
+      console.error("❌ Ошибка при продаже:", error);
+      return res.status(500).json({ message: "❌ Внутренняя ошибка сервера" });
+    }
+});
 
-
+app.post('/api/market/remove', async (req, res) => {
+    const { track_id } = req.body;
+  
+    if (!track_id) {
+      return res.status(400).json({ message: "❌ Отсутствует track_id" });
+    }
+  
+    try {
+      await pool.query(
+        `UPDATE tracks
+         SET is_for_sale = false, price = NULL, is_sold = false, buyer_id = NULL
+         WHERE id = $1`,
+        [track_id]
+      );
+  
+      return res.status(200).json({ message: "✅ Трек снят с продажи" });
+    } catch (error) {
+      console.error("❌ Ошибка при снятии с продажи:", error);
+      return res.status(500).json({ message: "❌ Внутренняя ошибка сервера" });
+    }
+});
+  
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

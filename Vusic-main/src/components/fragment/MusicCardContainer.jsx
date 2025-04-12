@@ -42,7 +42,7 @@ function MusicCardContainer() {
 
     return (
         <Container>
-            <div className="music-card-container">
+            <div className="music-grid-container">
                 {filteredTracks.length > 0 ? (
                     filteredTracks.map(item => (
                         <MusicCard key={item.id} music={item} />

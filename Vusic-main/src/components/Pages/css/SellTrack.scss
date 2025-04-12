@@ -1,0 +1,197 @@
+.sell-track-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    padding: 30px;
+  }
+  
+  /* Левая форма */
+  .sell-track-form {
+    flex: 1;
+    max-width: 400px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  
+    h2 {
+      margin-bottom: 20px;
+      color: var(--text-color);
+      text-align: center;
+      font-family: 'Courier New', monospace;
+    }
+  
+    .MuiFormControl-root {
+      margin-bottom: 20px;
+    }
+  
+    .MuiTextField-root {
+      margin-bottom: 20px;
+    }
+  
+    .MuiButton-root {
+      background-color: var(--button-bg);
+      color: var(--button-text);
+      border: 1px solid var(--button-border);
+      transition: 0.3s;
+      font-weight: bold;
+  
+      &:hover {
+        background-color: var(--button-hover-bg);
+        color: var(--button-hover-text);
+      }
+    }
+  }
+  
+  /* Правая колонка с карточками */
+  .sell-track-list-section {
+    flex: 2;
+    max-width: 800px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  
+    h3 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-family: 'Courier New', monospace;
+    }
+  
+    .track-sale-list {
+        display: flex;
+        flex-wrap: nowrap; /* ❌ Убираем перенос */
+        overflow-x: auto;  /* ✅ Прокрутка по горизонтали */
+        gap: 20px;
+        padding-bottom: 10px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--button-bg) transparent;
+      
+        &::-webkit-scrollbar {
+          height: 8px;
+        }
+      
+        &::-webkit-scrollbar-thumb {
+          background-color: var(--button-bg);
+          border-radius: 4px;
+        }
+      
+        &::-webkit-scrollbar-track {
+          background: transparent;
+        }
+      
+        .track-sale-card {
+          flex-shrink: 0;
+          min-width: 200px;
+          max-width: 200px;
+        }
+      }      
+  
+    .track-sale-card {
+        width: 200px;
+        background-color: rgba(255, 255, 255, 0.03); // полупрозрачный фон для тёмной темы
+        border: 1px solid rgba(255, 255, 255, 0.1);   // светлая рамка
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);    // тень
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s;
+      
+        &:hover {
+          transform: scale(1.02);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+      
+        .MuiCardMedia-root {
+          height: 140px;
+          object-fit: cover;
+        }
+      
+        .MuiCardContent-root {
+          text-align: center;
+          background-color: rgba(0, 0, 0, 0.05); // легкий низ карточки
+          padding: 10px;
+      
+          h6 {
+            font-weight: 600;
+            color: var(--text-color);
+          }
+      
+          p {
+            font-size: 0.9rem;
+            color: gray;
+          }
+        }
+      }      
+  }
+
+  .sell-track-form,
+.sell-track-list-section {
+  background-color: rgba(255, 255, 255, 0.02); // полупрозрачный фон
+  border: 1px solid rgba(255, 255, 255, 0.08); // светлая рамка
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);     // тень
+  backdrop-filter: blur(6px);                 // эффект размытия
+  transition: all 0.3s ease-in-out;
+}
+
+.track-sale-card .MuiCardContent-root .MuiIconButton-root {
+    color: var(--icon-color) !important;
+    padding: 4px;
+    transition: color 0.3s;
+  }
+  
+  .track-sale-card .MuiCardContent-root .MuiIconButton-root:hover {
+    color: var(--button-bg) !important;
+  }
+  
+
+.dark-theme .MuiSelect-icon {
+    color: white !important;
+  }
+  
+  
+  /* Цветовые переменные */
+  :root {
+    --button-bg: #07689f;
+    --button-text: white;
+    --button-border: #055a8c;
+    --button-hover-bg: #055a8c;
+    --button-hover-text: white;
+    --input-bg: #ffffff;
+    --border-color: #ccc;
+    --bg-color: #f6f6f6;
+    --text-color: #111;
+    --icon-color: #2b2024;
+  }
+  
+  .dark-theme {
+    --button-bg: #4ecca3;
+    --button-text: black;
+    --button-border: #3aa98a;
+    --button-hover-bg: #3aa98a;
+    --button-hover-text: black;
+    --input-bg: #2a2e35;
+    --border-color: #444;
+    --bg-color: #232931;
+    --text-color: #eee;
+    --icon-color: #eeeeee;
+  }
+  
+
+  .dark-theme .custom-select-menu {
+    background-color: #2c2f36 !important;
+    color: #eee !important;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+  
+  :root .custom-select-menu {
+    background-color: white;
+    color: black;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  

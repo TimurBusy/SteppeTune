@@ -60,7 +60,7 @@ const Search = () => {
                     </div>
                 </div>
             ) : (
-                <div className="Search-result">
+                <div className="music-grid-container">
                     {searchResult.map(track => (
                         <MusicCard key={track.id} music={track} />
                     ))}

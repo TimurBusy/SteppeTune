@@ -5,6 +5,7 @@ import { ThemeContext, themes } from "../../api/Theme";
 import { HomeOutlined, PlaylistPlay, SearchOutlined, Settings, Brightness4, PlaylistAdd, Edit, Delete } from "@material-ui/icons";
 import { Button, IconButton } from "@material-ui/core";
 import PlaylistModal from "./PlaylistModal";
+import { Storefront } from "@material-ui/icons";
 
 function SideBar({ tracks }) { 
     const { theme, setTheme } = useContext(ThemeContext);
@@ -43,6 +44,7 @@ function SideBar({ tracks }) {
                 <p className={"p1"}><span>LIBRARY</span></p>
                 <SideBarOptions className={"lib-sub"} Icon={HomeOutlined} href={"/home"} title={"Home"} />
                 <SideBarOptions className={"lib-sub"} Icon={SearchOutlined} href={"/home/search"} title={"Search"} />
+                <SideBarOptions className={"lib-sub"} Icon={Storefront} href={"/home/marketplace"} title={"Marketplace"} />
             </div>
 
             <div className="aside-bar-container settings">

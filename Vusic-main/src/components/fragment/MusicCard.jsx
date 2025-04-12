@@ -6,8 +6,9 @@ import { useDispatch } from "react-redux";
 import { setCurrentPlaying } from "../../actions/actions";
 import Name from "./Name";
 import { ThemeContext } from "../../api/Theme"; // ✅ Добавляем тему
+import { Button } from "@material-ui/core";
 
-function MusicCard({ music }) {
+function MusicCard({ music, isMarketplace }) {
     const dispatch = useDispatch();
     const useStyle = useContext(ThemeContext); // ✅ Получаем текущую тему
     const [liked, setLiked] = useState(false);
@@ -90,6 +91,21 @@ function MusicCard({ music }) {
             length={music.author_name.length}
           />
         </div>
+        {isMarketplace && (
+          <div className="market-extras-wrapper">
+            <div className="market-extras">
+              <span className="price">{music.price} ETH</span>
+              <Button
+                variant="contained"
+                size="small"
+                className="buy-btn"
+                disabled
+              >
+                Buy
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     );
 }

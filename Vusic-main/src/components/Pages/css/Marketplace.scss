@@ -1,0 +1,13 @@
+.Marketplace-skeleton {
+    height: 100%;
+    width: 100%;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  
+  .market-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+

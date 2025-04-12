@@ -61,37 +61,59 @@ function Profile() {
     );
 
     return (
-        <Container>
-            <div className="Profile">
-                <div className="top-profile">
-                    <Avatar src={avatar} style={{ width: "150px", height: "150px" }} />
-                    <div className="profile-detail">
-                        <h3>{userName}</h3>
-                    </div>
-                    <Button variant="contained" color="primary" onClick={() => history.push('/home/add')} style={{ marginTop: "20px" }}>
-                        Add Track
-                    </Button>
-                    <Button variant="contained" color="secondary" onClick={() => history.push('/home/edit-profile')} style={{ marginTop: "20px", marginLeft: "10px" }}>
-                        Edit
-                    </Button>
-                    <Button variant="contained" color="default" onClick={logout} style={{ marginTop: "20px", marginLeft: "10px" }}>
-                        Logout
-                    </Button>
-                </div>
-                <div className="bottom-profile">
-                    <h3>My Tracks</h3>
-                    <div className="most-played">
-                        {filteredTracks.length > 0 ? (
-                            filteredTracks.map(track => (
-                                <MusicCard key={track.id} music={track} />
-                            ))
-                        ) : (
-                            <p>No tracks found</p>
-                        )}
-                    </div>
-                </div>
+      <Container>
+        <div className="Profile">
+          <div className="top-profile">
+            <Avatar src={avatar} style={{ width: "150px", height: "150px" }} />
+            <div className="profile-detail">
+              <h3>{userName}</h3>
             </div>
-        </Container>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => history.push("/home/add")}
+              style={{ marginTop: "20px" }}
+            >
+              Add Track
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => history.push("/home/sell-track")}
+              style={{ marginTop: "20px", marginLeft: "10px" }}
+            >
+              Sell Track
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => history.push("/home/edit-profile")}
+              style={{ marginTop: "20px", marginLeft: "10px" }}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="contained"
+              color="default"
+              onClick={logout}
+              style={{ marginTop: "20px", marginLeft: "10px" }}
+            >
+              Logout
+            </Button>
+          </div>
+          <div className="bottom-profile">
+            <div className="music-grid-container">
+              {filteredTracks.length > 0 ? (
+                filteredTracks.map((track) => (
+                  <MusicCard key={track.id} music={track} />
+                ))
+              ) : (
+                <p>No tracks found</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </Container>
     );
 }
 

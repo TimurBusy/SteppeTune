@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import Login from "../components/Pages/Login";
 import Playlist from "../components/fragment/Playlist";
 import { ThemeContext, themes } from "../api/Theme";
+import ArtistProfile from "../components/Pages/ArtistProfile";
 
 const App = () => {
 
@@ -26,7 +27,7 @@ const App = () => {
                     <Route path="/" exact component={Login} />
                     <Route path="/home" component={Home} />
                     <Route path="/home/playlist/:id" component={Playlist} />
-
+                    <Route path="/artist/:id" element={<ArtistProfile />} />
                 </Switch>
             </Router>
         </ThemeContext.Provider>

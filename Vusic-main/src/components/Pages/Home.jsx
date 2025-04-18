@@ -18,6 +18,7 @@ import PlaylistModal from "../fragment/PlaylistModal";
 import { Skeleton } from "@material-ui/lab";
 import SellTrack from "./SellTrack";
 import Marketplace from "./Marketplace";
+import ArtistProfile from "./ArtistProfile";
 
 function getCurrPage(pathName) {
     switch (pathName) {
@@ -39,6 +40,9 @@ function getCurrPage(pathName) {
             if (pathName.startsWith("/home/playlist/")) {
                 return <Playlist />;
             }
+            if (pathName.startsWith("/home/artist/")) {
+                return <ArtistProfile />;
+            }            
             return null;
     }
 }

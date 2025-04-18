@@ -1,0 +1,45 @@
+.track-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  
+  .track-list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background-color: rgba(0, 0, 0, 0.03);
+    transition: background 0.2s ease-in-out;
+    cursor: pointer;
+  
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.08);
+    }
+  }
+  
+  .track-thumbnail {
+    width: 55px;
+    height: 55px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  .track-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .track-title {
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .track-author {
+    font-size: 0.85rem;
+    color: #888;
+    margin: 0;
+  }
+  

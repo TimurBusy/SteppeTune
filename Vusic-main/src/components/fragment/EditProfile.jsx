@@ -10,6 +10,7 @@ function EditProfile() {
     const [selectedImg, setSelectedImg] = useState(null);
     const [previewImg, setPreviewImg] = useState(null);
     const [myTracks, setMyTracks] = useState([]);
+    const [bio, setBio] = useState("");
     const fileRef = useRef(null);
 
     const userId = localStorage.getItem("userId");
@@ -31,6 +32,7 @@ function EditProfile() {
         .then(res => res.json())
         .then(data => {
             setUserName(data.name);
+            setBio(data.bio || "");
             setPreviewImg(data.avatar ? `http://localhost:5000/uploads/${data.avatar}` : defaultAvatar);
         })
         .catch(err => console.error("❌ Ошибка загрузки профиля:", err));
@@ -67,6 +69,8 @@ function EditProfile() {
         if (selectedImg) {
             formData.append("avatar", selectedImg);
         }
+
+        formData.append("bio", bio);
 
         try {
             const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
@@ -126,6 +130,15 @@ function EditProfile() {
             autoComplete="name"
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
+            style={{ marginBottom: "20px" }}
+          />
+          <TextField
+            label="Biography"
+            multiline
+            rows={4}
+            fullWidth
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
             style={{ marginBottom: "20px" }}
           />
           <Button variant="contained" color="primary" onClick={saveProfile}>

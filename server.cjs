@@ -102,16 +102,16 @@ app.post('/register', async (req, res) => {
 // ✅ Обновление профиля с загрузкой фото
 app.put('/api/users/:id', upload.single('avatar'), async (req, res) => {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, bio } = req.body;
     const avatar = req.file ? req.file.filename : null;
 
     try {
-        let query = 'UPDATE users SET name = $1 WHERE id = $2 RETURNING *';
-        let values = [name, id];
+        let query = 'UPDATE users SET name = $1, bio = $2 WHERE id = $3 RETURNING *';
+        let values = [name, bio, id];
 
         if (avatar) {
-            query = 'UPDATE users SET name = $1, avatar = $2 WHERE id = $3 RETURNING *';
-            values = [name, avatar, id];
+          query = 'UPDATE users SET name = $1, avatar = $2, bio = $3 WHERE id = $4 RETURNING *';
+          values = [name, avatar, bio, id];          
         }
 
         const updatedUser = await pool.query(query, values);
@@ -132,7 +132,8 @@ app.get('/api/users/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        const user = await pool.query("SELECT id, name, avatar FROM users WHERE id = $1", [id]);
+        const user = await pool.query("SELECT id, name, avatar, bio FROM users WHERE id = $1", [id]);
+
 
         if (user.rows.length === 0) {
             return res.status(404).json({ message: "Пользователь не найден" });
@@ -255,6 +256,26 @@ app.get('/api/marketplace/tracks', async (req, res) => {
       res.status(500).json({ message: "Ошибка сервера" });
     }
 });  
+
+app.get('/api/public/tracks/user/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const tracks = await pool.query(
+      "SELECT * FROM tracks WHERE owner_id = $1",
+      [id]
+    );
+
+    if (tracks.rows.length === 0) {
+      return res.status(404).json({ message: "Нет треков у пользователя" });
+    }
+
+    res.json(tracks.rows);
+  } catch (error) {
+    console.error("Ошибка загрузки публичных треков:", error);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
 
 // ✅ Загрузка трека (изображение + музыка)
 app.post('/api/tracks', upload.fields([{ name: 'img', maxCount: 1 }, { name: 'musicName', maxCount: 1 }]), async (req, res) => {

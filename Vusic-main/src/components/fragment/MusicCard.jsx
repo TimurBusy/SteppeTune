@@ -7,12 +7,14 @@ import { setCurrentPlaying } from "../../actions/actions";
 import Name from "./Name";
 import { ThemeContext } from "../../api/Theme"; // ✅ Добавляем тему
 import { Button } from "@material-ui/core";
+import { useHistory } from "react-router-dom";
 
 function MusicCard({ music, isMarketplace }) {
     const dispatch = useDispatch();
     const useStyle = useContext(ThemeContext); // ✅ Получаем текущую тему
     const [liked, setLiked] = useState(false);
     const userId = localStorage.getItem("userId");
+    const history = useHistory();
 
     useEffect(() => {
         if (!userId) return;
@@ -85,11 +87,16 @@ function MusicCard({ music, isMarketplace }) {
               style={{ color: liked ? "red" : "gray", cursor: "pointer" }}
             />
           </div>
-          <Name
-            name={music.author_name}
-            className={"author-name"}
-            length={music.author_name.length}
-          />
+          <p
+            className="author-name"
+            style={{ color: "#61dafb", cursor: "pointer", marginTop: "5px" }}
+            onClick={(e) => {
+              e.stopPropagation(); // ⛔ чтобы не сработал `onClick` карточки (play)
+              history.push(`/home/artist/${music.owner_id}`);
+            }}
+          >
+            {music.author_name}
+          </p>
         </div>
         {isMarketplace && (
           <div className="market-extras-wrapper">

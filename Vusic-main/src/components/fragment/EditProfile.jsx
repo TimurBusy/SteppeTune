@@ -12,6 +12,10 @@ function EditProfile() {
     const [myTracks, setMyTracks] = useState([]);
     const [bio, setBio] = useState("");
     const fileRef = useRef(null);
+    const [coverImage, setCoverImage] = useState(null);
+    const [artistCover, setArtistCover] = useState(null);
+    const [instagram, setInstagram] = useState("");
+    const [telegram, setTelegram] = useState("");
 
     const userId = localStorage.getItem("userId");
     const token = localStorage.getItem("token");
@@ -34,6 +38,9 @@ function EditProfile() {
             setUserName(data.name);
             setBio(data.bio || "");
             setPreviewImg(data.avatar ? `http://localhost:5000/uploads/${data.avatar}` : defaultAvatar);
+            setArtistCover(data.cover || null); // ✅ сюда
+            setInstagram(data.instagram || "");
+            setTelegram(data.telegram || "");
         })
         .catch(err => console.error("❌ Ошибка загрузки профиля:", err));
     }, [userId, token, defaultAvatar]);
@@ -70,7 +77,13 @@ function EditProfile() {
             formData.append("avatar", selectedImg);
         }
 
+        if (coverImage) {
+          formData.append("cover", coverImage);
+        }        
+
         formData.append("bio", bio);
+        formData.append("instagram", instagram);
+        formData.append("telegram", telegram);
 
         try {
             const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
@@ -96,6 +109,19 @@ function EditProfile() {
     const filteredTracks = myTracks.filter(track =>
         track.name.toLowerCase().includes(search.toLowerCase())
     );
+
+    const totalFields = 6;
+    let filled = 0;
+
+    if (userName) filled++;
+    if (bio) filled++;
+    if (selectedImg || previewImg) filled++;
+    if (artistCover) filled++;
+    if (instagram) filled++;
+    if (telegram) filled++;
+
+    const completionPercent = Math.round((filled / totalFields) * 100);
+
 
     return (
       <div className="edit-profile-wrapper">
@@ -141,39 +167,94 @@ function EditProfile() {
             onChange={(e) => setBio(e.target.value)}
             style={{ marginBottom: "20px" }}
           />
+          <div className="social-links">
+            <TextField
+              label="Instagram"
+              value={instagram}
+              onChange={(e) => setInstagram(e.target.value)}
+              fullWidth
+              style={{ marginBottom: "15px" }}
+            />
+            <TextField
+              label="Telegram"
+              value={telegram}
+              onChange={(e) => setTelegram(e.target.value)}
+              fullWidth
+              style={{ marginBottom: "15px" }}
+            />
+          </div>
           <Button variant="contained" color="primary" onClick={saveProfile}>
             Save Changes
           </Button>
+          <div className="profile-completion">
+          <div className="progress-label">
+            Profile Completion: {completionPercent}%
+          </div>
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{ width: `${completionPercent}%` }}
+            />
+          </div>
+        </div>
         </div>
 
-        <div className="track-list-edit">
-          <h3>My Tracks</h3>
-          <div className="track-grid">
-            {filteredTracks.length > 0 ? (
-              filteredTracks.map((track) => (
-                <div key={track.id} className="track-card">
-                  <img
-                    className="track-cover"
-                    src={
-                      track.img_ipfs
-                        ? track.img_ipfs.replace(
-                            "ipfs://",
-                            "https://w3s.link/ipfs/"
-                          )
-                        : `http://localhost:5000/uploads/${track.img}`
-                    }
-                    alt={track.name}
-                  />
+        
 
-                  <p className="track-name">{track.name}</p>
-                  <Button variant="outlined" color="primary" size="small">
-                    Edit
-                  </Button>
-                </div>
-              ))
-            ) : (
-              <p>No tracks found</p>
-            )}
+        <div className="track-and-cover-column">
+          <div className="track-list-edit">
+            <h3>My Tracks</h3>
+            <div className="track-grid">
+              {filteredTracks.length > 0 ? (
+                filteredTracks.map((track) => (
+                  <div key={track.id} className="track-card">
+                    <img
+                      className="track-cover"
+                      src={
+                        track.img_ipfs
+                          ? track.img_ipfs.replace(
+                              "ipfs://",
+                              "https://w3s.link/ipfs/"
+                            )
+                          : `http://localhost:5000/uploads/${track.img}`
+                      }
+                      alt={track.name}
+                    />
+
+                    <p className="track-name">{track.name}</p>
+                    <Button variant="outlined" color="primary" size="small">
+                      Edit
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <p>No tracks found</p>
+              )}
+            </div>
+          </div>
+          <div className="cover-image-section">
+            <h3>Header Image</h3>
+            <img
+              className="cover-preview"
+              src={
+                coverImage
+                  ? URL.createObjectURL(coverImage)
+                  : artistCover
+                  ? `http://localhost:5000/uploads/${artistCover}`
+                  : require("../assets/img/default-cover.jpg")
+              }
+              alt="Cover"
+            />
+            <input
+              type="file"
+              accept="image/*"
+              id="cover-upload"
+              onChange={(e) => setCoverImage(e.target.files[0])}
+              style={{ display: "none" }}
+            />
+            <label htmlFor="cover-upload" className="upload-cover-btn">
+              Change Cover
+            </label>
           </div>
         </div>
       </div>

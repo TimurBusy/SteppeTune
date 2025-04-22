@@ -100,39 +100,56 @@ app.post('/register', async (req, res) => {
 });
 
 // ✅ Обновление профиля с загрузкой фото
-app.put('/api/users/:id', upload.single('avatar'), async (req, res) => {
-    const { id } = req.params;
-    const { name, bio } = req.body;
-    const avatar = req.file ? req.file.filename : null;
+app.put('/api/users/:id', upload.fields([
+  { name: 'avatar', maxCount: 1 },
+  { name: 'cover', maxCount: 1 }
+]), async (req, res) => {
+  const { id } = req.params;
+  const { name, bio, instagram, telegram } = req.body;
 
-    try {
-        let query = 'UPDATE users SET name = $1, bio = $2 WHERE id = $3 RETURNING *';
-        let values = [name, bio, id];
+  const avatar = req.files?.avatar?.[0]?.filename || null;
+  const cover = req.files?.cover?.[0]?.filename || null;
 
-        if (avatar) {
-          query = 'UPDATE users SET name = $1, avatar = $2, bio = $3 WHERE id = $4 RETURNING *';
-          values = [name, avatar, bio, id];          
-        }
+  try {
+    let setParts = ['name = $1', 'bio = $2', 'instagram = $3', 'telegram = $4'];
+    let values = [name, bio, instagram, telegram];
+    let idx = 5;
 
-        const updatedUser = await pool.query(query, values);
-
-        if (updatedUser.rows.length === 0) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        res.json(updatedUser.rows[0]);
-    } catch (error) {
-        console.error("Ошибка обновления профиля:", error);
-        res.status(500).json({ message: "Ошибка сервера" });
+    if (avatar) {
+      setParts.push(`avatar = $${idx}`);
+      values.push(avatar);
+      idx++;
     }
+
+    if (cover) {
+      setParts.push(`cover = $${idx}`);
+      values.push(cover);
+      idx++;
+    }
+
+    values.push(id);
+    const query = `UPDATE users SET ${setParts.join(', ')} WHERE id = $${idx} RETURNING *`;
+
+    const updatedUser = await pool.query(query, values);
+
+    if (updatedUser.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(updatedUser.rows[0]);
+  } catch (error) {
+    console.error("Ошибка обновления профиля:", error);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
 });
+
 
 // ✅ Получение профиля
 app.get('/api/users/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
-        const user = await pool.query("SELECT id, name, avatar, bio FROM users WHERE id = $1", [id]);
+        const user = await pool.query("SELECT id, name, avatar, bio, cover, instagram, telegram, email FROM users WHERE id = $1", [id]);
 
 
         if (user.rows.length === 0) {
@@ -146,6 +163,31 @@ app.get('/api/users/:id', async (req, res) => {
     }
 });
 
+// ✅ Привязка MetaMask-кошелька к профилю
+app.post('/api/users/wallet', authenticateToken, async (req, res) => {
+  const { eth_address } = req.body;
+
+  if (!eth_address || eth_address.length < 10) {
+    return res.status(400).json({ message: "❌ Адрес MetaMask отсутствует или некорректен" });
+  }
+
+  try {
+    const result = await pool.query(
+      "UPDATE users SET eth_address = $1 WHERE id = $2 RETURNING eth_address",
+      [eth_address, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Пользователь не найден" });
+    }
+
+    console.log(`🔗 Кошелёк привязан: ${eth_address} -> User ${req.user.id}`);
+    res.status(200).json({ message: "✅ Кошелёк привязан", eth_address });
+  } catch (err) {
+    console.error("❌ Ошибка базы при привязке кошелька:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
 
 // ✅ Логин
 app.post('/login', async (req, res) => {
@@ -413,25 +455,29 @@ app.post('/api/tracks', upload.fields([{ name: 'img', maxCount: 1 }, { name: 'mu
 
 // server.cjs
 app.post('/api/market/sell', async (req, res) => {
-    const { track_id, price } = req.body;
-  
-    if (!track_id || !price) {
-      return res.status(400).json({ message: "❌ Отсутствуют обязательные поля" });
-    }
-  
-    try {
-      await pool.query(
-        `UPDATE tracks
-         SET is_for_sale = true, price = $1, is_sold = false, buyer_id = NULL
-         WHERE id = $2`,
-        [price, track_id]
-      );
-  
-      return res.status(200).json({ message: "✅ Трек выставлен на продажу" });
-    } catch (error) {
-      console.error("❌ Ошибка при продаже:", error);
-      return res.status(500).json({ message: "❌ Внутренняя ошибка сервера" });
-    }
+  const { track_id, price, song_id } = req.body;
+
+  if (!track_id || !price || !song_id) {
+    return res.status(400).json({ message: "❌ Отсутствуют обязательные поля (track_id, price, song_id)" });
+  }
+
+  try {
+    await pool.query(
+      `UPDATE tracks
+       SET is_for_sale = true,
+           price = $1,
+           is_sold = false,
+           buyer_id = NULL,
+           song_id = $2
+       WHERE id = $3`,
+      [price, song_id, track_id]
+    );
+
+    return res.status(200).json({ message: "✅ Трек выставлен на продажу и зарегистрирован в контракте" });
+  } catch (error) {
+    console.error("❌ Ошибка при продаже:", error);
+    return res.status(500).json({ message: "❌ Внутренняя ошибка сервера" });
+  }
 });
 
 app.post('/api/market/remove', async (req, res) => {
@@ -456,6 +502,51 @@ app.post('/api/market/remove', async (req, res) => {
     }
 });
   
+app.post('/api/market/complete-purchase', async (req, res) => {
+  const { song_id, new_owner_address } = req.body;
+
+  if (!song_id || !new_owner_address) {
+    return res.status(400).json({ message: "❌ Отсутствует song_id или адрес нового владельца" });
+  }
+
+  try {
+    const userRes = await pool.query(
+      `SELECT id, name FROM users WHERE LOWER(eth_address) = LOWER($1) LIMIT 1`,
+      [new_owner_address]
+    );
+
+    if (userRes.rowCount === 0) {
+      return res.status(404).json({ message: "❌ Пользователь с таким eth_address не найден" });
+    }
+
+    const newOwnerId = userRes.rows[0].id;
+    const newAuthorName = userRes.rows[0].name;
+
+    // 🔁 Обновляем владельца и автора
+    await pool.query(
+      `UPDATE tracks
+       SET owner_id = $1,
+           author_name = $2,
+           is_for_sale = false,
+           is_sold = true,
+           buyer_id = $1
+       WHERE song_id = $3`,
+      [newOwnerId, newAuthorName, song_id]
+    );
+
+    // 📦 Теперь получаем обновлённую строку
+    const finalTrack = await pool.query(`SELECT * FROM tracks WHERE song_id = $1`, [song_id]);
+
+    res.status(200).json({
+      message: "✅ Покупка завершена. Владелец и автор обновлены.",
+      track: finalTrack.rows[0]
+    });
+  } catch (err) {
+    console.error("❌ Ошибка в /complete-purchase:", err);
+    res.status(500).json({ message: "Ошибка сервера при завершении покупки" });
+  }
+});
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

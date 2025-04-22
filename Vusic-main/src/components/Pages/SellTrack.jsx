@@ -16,6 +16,8 @@ import './css/SellTrack.scss';
 import { IconButton } from "@material-ui/core";
 import EditIcon from "@material-ui/icons/Edit";
 import DeleteIcon from "@material-ui/icons/Delete";
+import { getHSRContract } from "../../web3/contract";
+import { ethers } from "ethers";
 
 
 function SellTrack() {
@@ -53,39 +55,127 @@ useEffect(() => {
       .catch(err => console.error("❌ Ошибка загрузки треков:", err));
   }, [userId]);
 
-  const handleSell = () => {
+  const handleSell = async () => {
     if (!selectedTrackId || !price) {
       alert("❗ Выберите трек и укажите цену");
       return;
     }
+  
+    const selectedTrack = tracks.find(track => track.id === selectedTrackId);
+    if (!selectedTrack) {
+      alert("❌ Трек не найден");
+      return;
+    }
+  
+    try {
+      const contract = await getHSRContract();
+  
+      // 👉 Проверка артиста
+      const userType = await contract.checkUser();
+      if (parseInt(userType) !== 1) {
+        const username = localStorage.getItem("username") || "Unnamed Artist";
+        const txRegister = await contract.addNewArtist(username);
+        await txRegister.wait();
+        console.log("✅ Артист автоматически зарегистрирован в контракте");
+      } else {
+        console.log("🎵 Уже зарегистрирован как артист");
+      }
+  
+      // ✅ Если трек уже зарегистрирован в контракте — НЕ вызываем addSong
+      if (selectedTrack.song_id) {
+        console.log("ℹ️ Трек уже зарегистрирован в контракте. Обновляем цену в контракте...");
 
-    fetch("http://localhost:5000/api/market/sell", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        track_id: selectedTrackId,
-        price
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
+        const newPriceInWei = ethers.parseEther(price.toString());
+        const txUpdate = await contract.updateSongPrice(selectedTrack.song_id, newPriceInWei);
+        await txUpdate.wait();
+        console.log("✅ Цена обновлена в контракте");
+
+        const res = await fetch("http://localhost:5000/api/market/sell", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            track_id: selectedTrackId,
+            price,
+            song_id: selectedTrack.song_id.toString(),
+          }),
+        });
+  
+        const result = await res.json();
+        if (res.ok) {
+          alert("✅ Трек снова выставлен на продажу");
+          setSelectedTrackId("");
+          setPrice("");
+          const updated = await fetch(
+            `http://localhost:5000/api/tracks/user/${userId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const data = await updated.json();
+          setTracks(data);
+        } else {
+          alert("❌ Ошибка: " + result.message);
+        }
+        return;
+      }
+  
+      // ✅ Трек ещё не зарегистрирован — вызываем addSong
+      const hash = ethers.encodeBytes32String(selectedTrack.id.toString());
+      const priceInWei = ethers.parseEther(price.toString());
+  
+      const tx = await contract.addSong(
+        selectedTrack.name,
+        selectedTrack.type || "electronic",
+        hash,
+        priceInWei
+      );
+  
+      const receipt = await tx.wait();
+      const logs = receipt.logs.map((log) => contract.interface.parseLog(log));
+      const songID = logs.find((log) => log.name === "songAdded")?.args.songID;
+  
+      if (!songID) {
+        alert("❌ Не удалось получить songID");
+        return;
+      }
+  
+      // Отправляем на backend
+      const res = await fetch("http://localhost:5000/api/market/sell", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          track_id: selectedTrackId,
+          price,
+          song_id: songID.toString(),
+        }),
+      });
+  
+      const result = await res.json();
+  
+      if (res.ok) {
         alert("✅ Трек выставлен на продажу!");
         setSelectedTrackId("");
         setPrice("");
-        return fetch(`http://localhost:5000/api/tracks/user/${userId}`, {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-      })
-      .then(res => res.json())
-      .then(data => setTracks(data))
-      .catch(err => {
-        console.error("❌ Ошибка при продаже:", err);
-        alert("❌ Ошибка при продаже трека");
-      });
-  };
+        const updated = await fetch(
+          `http://localhost:5000/api/tracks/user/${userId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const data = await updated.json();
+        setTracks(data);
+      } else {
+        alert("❌ Ошибка: " + result.message);
+      }
+    } catch (err) {
+      console.error("❌ Ошибка при продаже через контракт:", err);
+      alert("❌ Транзакция не удалась");
+    }
+  };  
 
   const saleTracks = tracks.filter(t => t.is_for_sale);
   const handleCancelEdit = () => {
@@ -93,55 +183,82 @@ useEffect(() => {
     setNewPrice("");
   };
   
-  const handleUpdatePrice = (trackId) => {
-    fetch(`http://localhost:5000/api/market/sell`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ track_id: trackId, price: newPrice })
-    })
-      .then(res => res.json())
-      .then(() => {
+  const handleUpdatePrice = async (trackId, songId) => {
+    try {
+      const contract = await getHSRContract();
+      const priceInWei = ethers.parseEther(newPrice.toString());
+  
+      // 🔁 Обновляем цену в контракте
+      const tx = await contract.updateSongPrice(songId, priceInWei);
+      await tx.wait();
+      console.log("✅ Цена в контракте обновлена");
+  
+      // 🔁 Обновляем цену в базе данных
+      const res = await fetch(`http://localhost:5000/api/market/sell`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ track_id: trackId, price: newPrice, song_id: songId })
+      });
+  
+      const result = await res.json();
+  
+      if (res.ok) {
         alert("✅ Цена обновлена");
         handleCancelEdit();
-        return fetch(`http://localhost:5000/api/tracks/user/${userId}`, {
-          headers: { "Authorization": `Bearer ${token}` }
+        const updated = await fetch(`http://localhost:5000/api/tracks/user/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
-      })
-      .then(res => res.json())
-      .then(data => setTracks(data))
-      .catch(err => {
-        console.error("❌ Ошибка при обновлении:", err);
-        alert("❌ Ошибка обновления");
+        const data = await updated.json();
+        setTracks(data);
+      } else {
+        alert("❌ Ошибка: " + result.message);
+      }
+    } catch (err) {
+      console.error("❌ Ошибка при обновлении цены:", err);
+      alert("❌ Ошибка обновления");
+    }
+  };
+
+  const handleRemoveFromSale = async (trackId, songId) => {
+    try {
+      const contract = await getHSRContract();
+  
+      // 💥 Снимаем с продажи в контракте
+      const tx = await contract.removeSongFromSale(songId);
+      await tx.wait();
+      console.log("✅ Трек снят с продажи в контракте");
+  
+      // 💾 Снимаем с продажи в БД
+      const res = await fetch(`http://localhost:5000/api/market/remove`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ track_id: trackId })
       });
+  
+      const result = await res.json();
+  
+      if (res.ok) {
+        alert("✅ Трек снят с продажи");
+        const updated = await fetch(`http://localhost:5000/api/tracks/user/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await updated.json();
+        setTracks(data);
+      } else {
+        alert("❌ Ошибка: " + result.message);
+      }
+    } catch (err) {
+      console.error("❌ Ошибка при снятии с продажи:", err);
+      alert("❌ Ошибка");
+    }
   };
   
-  const handleRemoveFromSale = (trackId) => {
-    fetch(`http://localhost:5000/api/market/remove`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ track_id: trackId })
-    })
-      .then(res => res.json())
-      .then(() => {
-        alert("✅ Трек снят с продажи");
-        return fetch(`http://localhost:5000/api/tracks/user/${userId}`, {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-      })
-      .then(res => res.json())
-      .then(data => setTracks(data))
-      .catch(err => {
-        console.error("❌ Ошибка при снятии:", err);
-        alert("❌ Ошибка");
-      });
-  };  
-
   return (
     <div className="sell-track-wrapper">
       <div className="sell-track-form">
@@ -232,7 +349,7 @@ useEffect(() => {
                       <Button
                         variant="contained"
                         color="primary"
-                        onClick={() => handleUpdatePrice(track.id)}
+                        onClick={() => handleUpdatePrice(track.id, track.song_id)}
                         style={{ marginTop: 8 }}
                       >
                         Save
@@ -263,7 +380,7 @@ useEffect(() => {
                         </IconButton>
 
                         <IconButton
-                          onClick={() => handleRemoveFromSale(track.id)}
+                          onClick={() => handleRemoveFromSale(track.id, track.song_id)}
                           size="small"
                         >
                           <DeleteIcon fontSize="small" />

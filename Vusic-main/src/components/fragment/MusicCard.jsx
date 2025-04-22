@@ -8,6 +8,8 @@ import Name from "./Name";
 import { ThemeContext } from "../../api/Theme"; // ✅ Добавляем тему
 import { Button } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
+import { getHSRContract } from "../../web3/contract";
+import { ethers } from "ethers";
 
 function MusicCard({ music, isMarketplace }) {
     const dispatch = useDispatch();
@@ -45,6 +47,65 @@ function MusicCard({ music, isMarketplace }) {
         setLiked(!liked);
     };
 
+    const handleBuy = async (e) => {
+      e.stopPropagation();
+    
+      try {
+        const contract = await getHSRContract();
+
+        console.log("📦 Проверяем getSongDetails...");
+        const songDetails = await contract.getSongDetails(music.song_id);
+        console.log("🧾 Название:", songDetails[0]);
+        console.log("👤 Артист:", songDetails[1]);
+        console.log("🎵 Жанр:", songDetails[2]);
+        console.log("🔐 Хеш:", songDetails[3]);
+        console.log("💰 Цена (в wei):", songDetails[4].toString());
+        console.log("🧾 Покупок:", songDetails[5]);
+
+    
+        const userType = await contract.checkUser();
+        const LISTENER_TYPE = 2;
+    
+        if (userType !== LISTENER_TYPE) {
+          console.log("🔁 Регистрируемся как listener...");
+          const defaultName = `listener_${window.ethereum.selectedAddress.slice(0, 6)}`;
+          const txReg = await contract.addNewListener(defaultName);
+          await txReg.wait();
+          console.log("✅ Listener зарегистрирован");
+        }
+    
+        const priceInWei = ethers.parseEther(music.price.toString());
+    
+        const tx = await contract.buySong(music.song_id, {
+          value: priceInWei,
+        });
+    
+        await tx.wait();
+        alert("✅ Покупка прошла успешно!");
+    
+        const res = await fetch("http://localhost:5000/api/market/complete-purchase", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            song_id: music.song_id,
+            new_owner_address: window.ethereum.selectedAddress,
+          }),
+        });
+    
+        const result = await res.json();
+        if (res.ok) {
+          console.log("✅ Сервер подтвердил передачу прав:", result);
+        } else {
+          console.warn("⚠️ Сервер не смог обновить владельца:", result.message);
+        }
+      } catch (err) {
+        console.error("❌ Ошибка при покупке:", err);
+        alert("❌ Покупка не удалась. Проверьте MetaMask или баланс.");
+      }
+    };
+    
     return (
       <div
         className="music-card"
@@ -89,7 +150,7 @@ function MusicCard({ music, isMarketplace }) {
           </div>
           <p
             className="author-name"
-            style={{ color: "#61dafb", cursor: "pointer", marginTop: "5px" }}
+            style={{ color: "gray", cursor: "pointer", marginTop: "5px" }}
             onClick={(e) => {
               e.stopPropagation(); // ⛔ чтобы не сработал `onClick` карточки (play)
               history.push(`/home/artist/${music.owner_id}`);
@@ -106,7 +167,7 @@ function MusicCard({ music, isMarketplace }) {
                 variant="contained"
                 size="small"
                 className="buy-btn"
-                disabled
+                onClick={handleBuy}
               >
                 Buy
               </Button>

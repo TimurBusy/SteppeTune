@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import "../Pages/css/ArtistProfile.scss";
 import { useDispatch } from "react-redux";
 import { setCurrentPlaying } from "../../actions/actions";
+import instagramIcon from "../assets/img/instagram.svg";
+import telegramIcon from "../assets/img/telegram.svg";
+import emailIcon from "../assets/img/email.svg"
 
 function ArtistProfile() {
   const id = window.location.pathname.split("/").pop();
@@ -30,21 +33,81 @@ function ArtistProfile() {
 
   return (
     <div className="artist-profile">
-      <h2>{artist.name}</h2>
-      <img
-        src={
-          artist.avatar
-            ? `http://localhost:5000/uploads/${artist.avatar}`
-            : require("../assets/img/avatar2.jpg")
-        }
-        alt="Avatar"
-        style={{ width: "150px", borderRadius: "50%" }}
-      />
-      <p style={{ marginTop: "10px" }}>
-        <strong>Bio:</strong> {artist.bio || "No bio available"}
-      </p>
+      <div className="artist-header-with-cover">
+        <img
+          className="artist-cover-bg"
+          src={
+            artist.cover
+              ? `http://localhost:5000/uploads/${artist.cover}`
+              : require("../assets/img/default-cover.jpg")
+          }
+          alt="Cover"
+        />
+        <div className="artist-header-content">
+          <img
+            className="artist-avatar"
+            src={
+              artist.avatar
+                ? `http://localhost:5000/uploads/${artist.avatar}`
+                : require("../assets/img/avatar2.jpg")
+            }
+            alt="Avatar"
+          />
+          <div className="artist-meta">
+            <h2>{artist.name}</h2>
+            <p className="artist-bio">{artist.bio || "No bio available"}</p>
+          </div>
+          <div className="artist-socials">
+            {artist.instagram && (
+              <a
+                href={artist.instagram}
+                target="_blank"
+                rel="noreferrer"
+                className="social-link"
+              >
+                <img
+                  src={instagramIcon}
+                  alt="Instagram"
+                  className="social-icon"
+                />
+                Instagram
+              </a>
+            )}
+            {artist.telegram && (
+              <a
+                href={artist.telegram}
+                target="_blank"
+                rel="noreferrer"
+                className="social-link"
+              >
+                <img
+                  src={telegramIcon}
+                  alt="Telegram"
+                  className="social-icon"
+                />
+                Telegram
+              </a>
+            )}
+            {artist.email && (
+              <a
+                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${artist.email}`}
+                target="_blank"
+                rel="noreferrer"
+                className="social-link"
+              >
+                <img
+                  src={emailIcon}
+                  alt="Email"
+                  className="social-icon"
+                />
+                Email
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
 
-      <h3>Tracks by {artist.name}</h3>
+      <h3 className="tracks-title">Tracks by {artist.name}</h3>
       <div className="track-list">
         {tracks.length > 0 ? (
           tracks.map((track) => (
@@ -57,7 +120,10 @@ function ArtistProfile() {
                 className="track-thumbnail"
                 src={
                   track.img_ipfs
-                    ? track.img_ipfs.replace("ipfs://", "https://w3s.link/ipfs/")
+                    ? track.img_ipfs.replace(
+                        "ipfs://",
+                        "https://w3s.link/ipfs/"
+                      )
                     : `http://localhost:5000/uploads/${track.img}`
                 }
                 alt={track.name}

@@ -17,6 +17,36 @@ function Profile() {
 
     const search = useSelector(state => state.musicReducer.search); // ✅ Глобальный поиск
 
+    const linkWallet = async () => {
+      try {
+        if (!window.ethereum) {
+          alert("Установите MetaMask!");
+          return;
+        }
+    
+        const [address] = await window.ethereum.request({ method: "eth_requestAccounts" });
+    
+        const res = await fetch(`http://localhost:5000/api/users/wallet`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ eth_address: address })
+        });
+    
+        const data = await res.json();
+        if (res.ok) {
+          alert("✅ Кошелёк успешно привязан: " + address);
+        } else {
+          alert("❌ Ошибка: " + data.message);
+        }
+      } catch (err) {
+        console.error("❌ Ошибка привязки кошелька", err);
+        alert("Произошла ошибка при привязке MetaMask.");
+      }
+    };    
+
     useEffect(() => {
         if (!userId) return;
 
@@ -92,6 +122,15 @@ function Profile() {
             >
               Edit
             </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={linkWallet}
+              style={{ marginTop: "20px", marginLeft: "10px" }}
+            >
+              link wallet
+            </Button>
+
             <Button
               variant="contained"
               color="default"

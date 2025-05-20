@@ -1,0 +1,38 @@
+.stats-chart-wrapper {
+  margin-top: 20px;
+  background-color: var(--card-bg) !important;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3); // 👈 как .music-card
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(6px);
+  transition: all 0.3s ease-in-out;
+}
+
+.chart-controls {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+
+  .custom-select-menu {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--button-border);
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-weight: bold;
+    transition: 0.2s ease-in-out;
+
+    &:hover {
+      border-color: var(--button-hover-bg);
+    }
+  }
+}
+
+.chart-container {
+  width: 100%;
+  max-height: 400px;
+  overflow-x: hidden; // 👈 чтобы не было прокрутки по оси X
+}

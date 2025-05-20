@@ -571,6 +571,38 @@ app.post("/api/tracks/:id/view", authenticateToken, async (req, res) => {
   }
 });
 
+app.get("/api/tracks/:id/stats", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { range } = req.query; // day | month | year
+  const userId = req.user.id;
+
+  const trackCheck = await pool.query(`SELECT owner_id FROM tracks WHERE id = $1`, [id]);
+  if (trackCheck.rows.length === 0 || trackCheck.rows[0].owner_id !== userId) {
+    return res.status(403).json({ message: "⛔ Доступ запрещён" });
+  }
+
+  let interval = "day";
+  if (range === "month") interval = "month";
+  if (range === "year") interval = "year";
+
+  try {
+    const result = await pool.query(`
+      SELECT
+        DATE_TRUNC($1, timestamp) AS period,
+        COUNT(*) AS views
+      FROM track_views_log
+      WHERE track_id = $2
+      GROUP BY period
+      ORDER BY period ASC
+    `, [interval, id]);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("❌ Ошибка статистики:", error);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
 app.post("/api/tracks/:id/like", async (req, res) => {
   const { id } = req.params;
   try {

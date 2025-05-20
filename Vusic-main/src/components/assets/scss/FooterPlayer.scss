@@ -134,15 +134,22 @@
 /* Модальное окно с увеличенной обложкой */
 .modal-container {
   position: fixed;
-  top: 50%;
+  top: 45%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.95);
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--bg-color);
+  color: var(--text-color);
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 20px rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.4);
   opacity: 0;
   transition: all 0.3s ease-in-out;
+  max-width: 500px;
+  width: 90%;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .MuiFade-entered .modal-container {
@@ -150,21 +157,28 @@
   transform: translate(-50%, -50%) scale(1);
 }
 
-
 .modal-container img {
-  max-width: 90vw;
-  max-height: 90vh;
-  object-fit: contain;
-  display: block;
-  margin: auto;
+  width: 100%;
   border-radius: 12px;
+  object-fit: cover;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
+.modal-info {
+  text-align: center;
+  width: 100%;
+}
 
-.modal-image {
-  max-width: 90vw;
-  max-height: 90vh;
-  display: block;
-  margin: auto;
-  border-radius: 10px;
+.modal-info h2 {
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.modal-info p {
+  font-size: 0.95rem;
+  color: var(--secondary-text-color);
+  margin: 4px 0;
 }

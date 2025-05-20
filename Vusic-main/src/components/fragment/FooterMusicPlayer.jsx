@@ -33,6 +33,38 @@ function FooterMusicPlayer() {
       async function loadAndPlayAudio() {
         if (!playing || !playing.musicname) return;
 
+        // 🔁 Views: считаем только один раз за сессию
+        const userId = localStorage.getItem("userId");
+        if (!userId || !playing?.id) return;
+
+        const viewedKey = `viewedTracks_${userId}`;
+        let viewedMap = JSON.parse(localStorage.getItem(viewedKey)) || {};
+
+        // ID трека
+        const trackId = playing.id;
+
+        // Время последнего просмотра
+        const lastViewed = viewedMap[trackId];
+        // Текущее время
+        const now = Date.now();
+        // Разница во времени в миллисекундах
+        const oneHour = 60 * 60 * 1000;
+
+        if (!lastViewed || now - lastViewed >= oneHour) {
+          // Отправляем запрос на увеличение просмотров
+          fetch(`http://localhost:5000/api/tracks/${playing.id}/view`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          // Обновляем время в localStorage
+          viewedMap[trackId] = now;
+          localStorage.setItem(viewedKey, JSON.stringify(viewedMap));
+        }
+
         const ipfsUrl = playing.music_ipfs
           ? playing.music_ipfs.replace("ipfs://", "https://w3s.link/ipfs/")
           : null;
@@ -137,7 +169,10 @@ function FooterMusicPlayer() {
                 variant="square"
                 src={
                   playing?.img_ipfs
-                    ? playing.img_ipfs.replace("ipfs://", "https://w3s.link/ipfs/")
+                    ? playing.img_ipfs.replace(
+                        "ipfs://",
+                        "https://w3s.link/ipfs/"
+                      )
                     : `http://localhost:5000/uploads/${playing?.img}`
                 }
                 alt={playing?.name}
@@ -146,8 +181,16 @@ function FooterMusicPlayer() {
             className="curr-music-container"
           >
             <div className="curr-music-details">
-              <Name name={playing?.name || "No Track"} className={"song-name"} length={playing?.name?.length || 0} />
-              <Name name={playing?.author_name || ""} className={"author-name"} length={playing?.author_name?.length || 0} />
+              <Name
+                name={playing?.name || "No Track"}
+                className={"song-name"}
+                length={playing?.name?.length || 0}
+              />
+              <Name
+                name={playing?.author_name || ""}
+                className={"author-name"}
+                length={playing?.author_name?.length || 0}
+              />
             </div>
           </Button>
 
@@ -176,7 +219,9 @@ function FooterMusicPlayer() {
           </div>
 
           <div className="playback-widgets">
-            <p>{formatTime(currTime)} / {formatTime(duration)}</p>
+            <p>
+              {formatTime(currTime)} / {formatTime(duration)}
+            </p>
             <Slider
               style={{ color: useStyle.theme }}
               value={volume}
@@ -193,15 +238,28 @@ function FooterMusicPlayer() {
           BackdropProps={{ timeout: 500 }}
         >
           <Fade in={open}>
-            <div className="modal-container">
+            <div
+              className="modal-container"
+              onClick={(e) => e.stopPropagation()}
+            >
               <img
                 src={
                   playing?.img_ipfs
-                    ? playing.img_ipfs.replace("ipfs://", "https://w3s.link/ipfs/")
+                    ? playing.img_ipfs.replace(
+                        "ipfs://",
+                        "https://w3s.link/ipfs/"
+                      )
                     : `http://localhost:5000/uploads/${playing?.img}`
                 }
                 alt={playing?.name}
+                className="modal-cover"
               />
+              <div className="modal-info">
+                <h2>{playing?.name}</h2>
+                <p>
+                  <strong>Artist:</strong> {playing?.author_name}
+                </p>
+              </div>
             </div>
           </Fade>
         </Modal>

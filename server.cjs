@@ -547,6 +547,55 @@ app.post('/api/market/complete-purchase', async (req, res) => {
   }
 });
 
+app.post("/api/tracks/:id/view", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user?.id || null;
+
+  // Получаем IP адрес (если прокси — через x-forwarded-for)
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+  try {
+    // Увеличиваем счётчик в tracks
+    await pool.query(`UPDATE tracks SET views = views + 1 WHERE id = $1`, [id]);
+
+    // Логируем в таблицу просмотров
+    await pool.query(
+      `INSERT INTO track_views_log (track_id, user_id, ip_address) VALUES ($1, $2, $3)`,
+      [id, userId, ip]
+    );
+
+    res.status(200).json({ message: "✅ Просмотр засчитан и записан" });
+  } catch (err) {
+    console.error("❌ Ошибка логирования:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+app.post("/api/tracks/:id/like", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query(
+      `UPDATE tracks SET likes = likes + 1 WHERE id = $1`,
+      [id]
+    );
+    res.status(200).json({ message: "❤️ Лайк добавлен" });
+  } catch (err) {
+    console.error("❌ Ошибка при обновлении likes:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+app.post("/api/tracks/:id/unlike", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query(`UPDATE tracks SET likes = GREATEST(likes - 1, 0) WHERE id = $1`, [id]);
+    res.status(200).json({ message: "👎 Лайк удалён" });
+  } catch (err) {
+    console.error("Ошибка unlike:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

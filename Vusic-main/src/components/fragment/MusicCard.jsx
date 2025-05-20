@@ -11,7 +11,7 @@ import { useHistory } from "react-router-dom";
 import { getHSRContract } from "../../web3/contract";
 import { ethers } from "ethers";
 
-function MusicCard({ music, isMarketplace }) {
+function MusicCard({ music, isMarketplace, isOwner }) {
     const dispatch = useDispatch();
     const useStyle = useContext(ThemeContext); // ✅ Получаем текущую тему
     const [liked, setLiked] = useState(false);
@@ -29,22 +29,40 @@ function MusicCard({ music, isMarketplace }) {
     }
 
     const toggleLike = (e) => {
-        e.stopPropagation();
-        if (!userId) {
-            alert("❌ Ошибка: пользователь не найден!");
-            return;
-        }
+      e.stopPropagation();
+      if (!userId) {
+        alert("❌ Ошибка: пользователь не найден!");
+        return;
+      }
 
-        let storedLikes = JSON.parse(localStorage.getItem(`likedTracks_${userId}`)) || [];
+      const storageKey = `likedTracks_${userId}`;
+      let storedLikes = JSON.parse(localStorage.getItem(storageKey)) || [];
 
-        if (liked) {
-            storedLikes = storedLikes.filter(track => track.id !== music.id);
-        } else {
-            storedLikes.push(music);
-        }
+      const isAlreadyLiked = storedLikes.some((track) => track.id === music.id);
 
-        localStorage.setItem(`likedTracks_${userId}`, JSON.stringify(storedLikes));
-        setLiked(!liked);
+      if (isAlreadyLiked) {
+        // 🔻 Удаляем из localStorage
+        storedLikes = storedLikes.filter((track) => track.id !== music.id);
+
+        // 🔻 Отправляем запрос на unlike
+        fetch(`http://localhost:5000/api/tracks/${music.id}/unlike`, {
+          method: "POST",
+        });
+
+        setLiked(false);
+      } else {
+        // 🔺 Добавляем в localStorage
+        storedLikes.push(music);
+
+        // 🔺 Отправляем запрос на like
+        fetch(`http://localhost:5000/api/tracks/${music.id}/like`, {
+          method: "POST",
+        });
+
+        setLiked(true);
+      }
+
+      localStorage.setItem(storageKey, JSON.stringify(storedLikes));
     };
 
     const handleBuy = async (e) => {
@@ -172,6 +190,15 @@ function MusicCard({ music, isMarketplace }) {
                 Buy
               </Button>
             </div>
+          </div>
+        )}
+        {isOwner && (
+          <div
+            className="track-stats"
+            style={{ marginTop: "5px", fontSize: "0.9rem", color: "#666" }}
+          >
+            <span style={{ marginRight: "10px", marginLeft: "8px" }}>👁 {music.views || 0}</span>
+            <span>❤️ {music.likes || 0}</span>
           </div>
         )}
       </div>

@@ -144,7 +144,7 @@ function Profile() {
             <div className="music-grid-container">
               {filteredTracks.length > 0 ? (
                 filteredTracks.map((track) => (
-                  <MusicCard key={track.id} music={track} />
+                  <MusicCard key={track.id} music={track} isOwner={true} />
                 ))
               ) : (
                 <p>No tracks found</p>

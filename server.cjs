@@ -28,6 +28,48 @@ const port = 5000;
 const basePath = __dirname;
 const pythonScript = path.join(basePath, 'fingerprint_handler.py');
 
+// ✅ Универсальная функция загрузки в IPFS
+const getIpfsCid = (filePath) => {
+  console.log("📁 Загружаем файл в IPFS:", filePath);
+
+  if (!fs.existsSync(filePath)) {
+    console.error("❌ Файл не найден:", filePath);
+    return null;
+  }
+
+  const fileSize = fs.statSync(filePath).size;
+  console.log("📏 Размер файла:", fileSize);
+
+  try {
+    const result = spawnSync(
+      'cmd.exe',
+      ['/c', 'w3', 'up', filePath, '--debug'],
+      { encoding: 'utf-8' }
+    );
+
+    if (!result.stdout) {
+      console.error("⛔ IPFS stdout пустой:", result.stderr || "Нет ошибок в stderr");
+      return null;
+    }
+
+    const lines = result.stdout.split('\n');
+    for (let line of lines) {
+      if (line.includes('https://') && line.includes('/ipfs/')) {
+        const cidPart = line.split('/ipfs/')[1]?.trim();
+        if (cidPart) {
+          return `ipfs://${cidPart}`;
+        }
+      }
+    }
+
+    console.warn("⚠️ CID не найден в выводе");
+    return null;
+  } catch (e) {
+    console.error("❌ Ошибка IPFS загрузки:", e);
+    return null;
+  }
+};
+
 app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -348,55 +390,8 @@ app.post('/api/tracks', upload.fields([{ name: 'img', maxCount: 1 }, { name: 'mu
       fs.unlinkSync(audioPath);
       fs.unlinkSync(imgPath);
       return res.status(409).json({ message: "❌ Плагиат: трек уже существует" });
-    }
-  
-    // ☁️ Загрузка в IPFS через CLI `w3 up`
-    const getIpfsCid = (filePath) => {
-        const fs = require("fs");
-        console.log("📁 Загружаем файл в IPFS:", filePath);
-      
-        if (!fs.existsSync(filePath)) {
-          console.error("❌ Файл не найден:", filePath);
-          return null;
-        }
-      
-        const fileSize = fs.statSync(filePath).size;
-        console.log("📏 Размер:", fileSize);
-      
-        try {
-          const result = spawnSync(
-            'cmd.exe',
-            ['/c', 'w3', 'up', filePath, '--debug'],
-            { encoding: 'utf-8' }
-          );
-      
-          if (!result.stdout) {
-            console.error("⛔ IPFS stdout is empty:", result.stderr || "Нет ошибок в stderr");
-            return null;
-          }
-      
-          console.log("🔧 Результат w3 up:\n", result.stdout);
-      
-          const lines = result.stdout.split('\n');
-          for (let line of lines) {
-            if (line.includes('https://') && line.includes('/ipfs/')) {
-              const cidPart = line.split('/ipfs/')[1]?.trim();
-              if (cidPart) {
-                return `ipfs://${cidPart}`;
-              }
-            }
-          }
-      
-          console.warn("⚠️ CID не найден в выводе");
-          return null;
-      
-        } catch (e) {
-          console.error("IPFS upload error:", e);
-          return null;
-        }
-    };      
+    }      
 
-  
     const img_ipfs_base = getIpfsCid(imgPath);
     const music_ipfs_base = getIpfsCid(audioPath);
 
@@ -628,6 +623,121 @@ app.post("/api/tracks/:id/unlike", async (req, res) => {
   }
 });
 
+// 🔄 Редактирование трека: замена аудио и/или обложки
+app.put('/api/tracks/:id', upload.fields([
+  { name: 'audio', maxCount: 1 },
+  { name: 'image', maxCount: 1 }
+]), async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const trackRes = await pool.query('SELECT * FROM tracks WHERE id = $1', [id]);
+    if (trackRes.rows.length === 0) return res.status(404).json({ message: "❌ Трек не найден" });
+
+    const track = trackRes.rows[0];
+    const audio = req.files?.audio?.[0];
+    const image = req.files?.image?.[0];
+
+    // 🔁 Заменяем аудио
+    let musicName = track.musicname;
+    let music_ipfs = track.music_ipfs;
+
+    if (audio) {
+      const audioPath = path.join(__dirname, "uploads", audio.filename);
+
+      // 🔍 Проверка на плагиат
+      const checkResult = spawnSync('python', [pythonScript, 'check', audioPath, id], { encoding: 'utf-8' });
+      if (checkResult.stdout.includes("DUPLICATE")) {
+        fs.unlinkSync(audioPath);
+        return res.status(409).json({ message: "❌ Новый файл — плагиат" });
+      }
+
+      // ❌ Удаляем старые хэши
+      await pool.query(`DELETE FROM fingerprints WHERE track_id = $1`, [id]);
+
+      // ☁️ Загрузка в IPFS
+      const ipfs = getIpfsCid(audioPath);
+      if (!ipfs) {
+        fs.unlinkSync(audioPath);
+        return res.status(500).json({ message: "❌ Ошибка IPFS загрузки" });
+      }
+
+      musicName = audio.filename;
+      music_ipfs = `${ipfs}/${audio.filename}`;
+
+      // 💾 Записываем новый fingerprint
+      const addResult = spawnSync('python', [pythonScript, 'add', audioPath, id.toString()], { encoding: 'utf-8' });
+      if (!addResult.stdout.includes("OK")) {
+        fs.unlinkSync(audioPath);
+        return res.status(500).json({ message: "❌ Ошибка при записи fingerprint" });
+      }
+
+      fs.unlinkSync(audioPath);
+    }
+
+    // 🔁 Заменяем обложку
+    let img = track.img;
+    let img_ipfs = track.img_ipfs;
+
+    if (image) {
+      const imagePath = path.join(__dirname, "uploads", image.filename);
+      const ipfs = getIpfsCid(imagePath);
+      if (!ipfs) {
+        fs.unlinkSync(imagePath);
+        return res.status(500).json({ message: "❌ Ошибка IPFS загрузки обложки" });
+      }
+
+      img = image.filename;
+      img_ipfs = `${ipfs}/${image.filename}`;
+      fs.unlinkSync(imagePath);
+    }
+
+    // 📦 Обновляем запись в БД
+    await pool.query(
+      `UPDATE tracks SET musicname = $1, music_ipfs = $2, img = $3, img_ipfs = $4 WHERE id = $5`,
+      [musicName, music_ipfs, img, img_ipfs, id]
+    );
+
+    return res.status(200).json({ message: "✅ Трек обновлён" });
+  } catch (err) {
+    console.error("❌ Ошибка при редактировании трека:", err);
+    return res.status(500).json({ message: "❌ Внутренняя ошибка сервера" });
+  }
+});
+
+// ✅ Удаление трека по ID
+app.delete("/api/tracks/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  try {
+    // 1. Проверяем, что трек существует и принадлежит этому пользователю
+    const trackRes = await pool.query("SELECT * FROM tracks WHERE id = $1", [id]);
+    if (trackRes.rows.length === 0) {
+      return res.status(404).json({ message: "❌ Трек не найден" });
+    }
+
+    const track = trackRes.rows[0];
+    if (track.owner_id !== userId) {
+      return res.status(403).json({ message: "⛔ Нет прав на удаление этого трека" });
+    }
+
+    if (track.is_for_sale) {
+      return res.status(400).json({ message: "❌ Сначала снимите трек с продажи" });
+    }
+
+    // 2. Удаляем fingerprint'ы
+    await pool.query("DELETE FROM fingerprints WHERE track_id = $1", [id]);
+
+    // 3. Удаляем сам трек из tracks
+    await pool.query("DELETE FROM tracks WHERE id = $1", [id]);
+
+    return res.status(200).json({ message: "✅ Трек удалён вместе с хэшами" });
+  } catch (error) {
+    console.error("❌ Ошибка при удалении трека:", error);
+    return res.status(500).json({ message: "❌ Внутренняя ошибка при удалении" });
+  }
+});
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

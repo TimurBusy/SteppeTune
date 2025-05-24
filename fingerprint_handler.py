@@ -10,11 +10,13 @@ def main():
     if len(sys.argv) < 3:
         print("ERROR: Неверные аргументы.\n")
         print("  ▶ python fingerprint_handler.py check path/to/file")
+        print("  ▶ python fingerprint_handler.py check path/to/file ignore_id")
         print("  ▶ python fingerprint_handler.py add path/to/file track_id")
         sys.exit(1)
 
     mode = sys.argv[1]
     file_path = sys.argv[2]
+    ignore_id = int(sys.argv[3]) if len(sys.argv) > 3 and mode == "check" else None
 
     if not os.path.exists(file_path):
         print("ERROR: Файл не найден:", file_path)
@@ -23,7 +25,7 @@ def main():
     db = FingerprintDB()
 
     if mode == "check":
-        if db.is_duplicate(file_path):
+        if db.is_duplicate(file_path, ignore_track_id=ignore_id):
             print("DUPLICATE")
         else:
             print("OK")

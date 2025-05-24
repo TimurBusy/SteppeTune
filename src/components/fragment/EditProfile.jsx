@@ -17,6 +17,14 @@ function EditProfile() {
     const [instagram, setInstagram] = useState("");
     const [telegram, setTelegram] = useState("");
 
+  const [editTargetTrack, setEditTargetTrack] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  const handleEditClick = (track) => {
+    setEditTargetTrack(track);
+    setEditDialogOpen(true);
+  };
+
     const userId = localStorage.getItem("userId");
     const token = localStorage.getItem("token");
     const search = useSelector(state => state.musicReducer.search); // ✅ Глобальный поиск
@@ -69,6 +77,56 @@ function EditProfile() {
             setPreviewImg(URL.createObjectURL(file));
         }
     };
+
+    const handleSubmitEdit = async () => {
+  const formData = new FormData();
+  if (editTargetTrack.newAudio) formData.append("audio", editTargetTrack.newAudio);
+  if (editTargetTrack.newImage) formData.append("image", editTargetTrack.newImage);
+
+  try {
+    const response = await fetch(`http://localhost:5000/api/tracks/${editTargetTrack.id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (response.ok) {
+      alert("✅ Track updated!");
+      setEditDialogOpen(false);
+      window.location.reload(); // или обновить state вручную
+    } else {
+      alert("❌ Failed to update track.");
+    }
+  } catch (error) {
+    console.error("Ошибка обновления:", error);
+  }
+};
+
+const handleDeleteTrack = async () => {
+  const confirmed = window.confirm("Are you sure you want to delete this track?");
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch(`http://localhost:5000/api/tracks/${editTargetTrack.id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      alert("✅ Track deleted");
+      setEditDialogOpen(false);
+      window.location.reload();
+    } else {
+      alert("❌ Failed to delete track.");
+    }
+  } catch (error) {
+    console.error("Ошибка удаления:", error);
+  }
+};
 
     const saveProfile = async () => {
         const formData = new FormData();
@@ -187,19 +245,17 @@ function EditProfile() {
             Save Changes
           </Button>
           <div className="profile-completion">
-          <div className="progress-label">
-            Profile Completion: {completionPercent}%
-          </div>
-          <div className="progress-bar">
-            <div
-              className="progress-fill"
-              style={{ width: `${completionPercent}%` }}
-            />
+            <div className="progress-label">
+              Profile Completion: {completionPercent}%
+            </div>
+            <div className="progress-bar">
+              <div
+                className="progress-fill"
+                style={{ width: `${completionPercent}%` }}
+              />
+            </div>
           </div>
         </div>
-        </div>
-
-        
 
         <div className="track-and-cover-column">
           <div className="track-list-edit">
@@ -222,7 +278,12 @@ function EditProfile() {
                     />
 
                     <p className="track-name">{track.name}</p>
-                    <Button variant="outlined" color="primary" size="small">
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      onClick={() => handleEditClick(track)}
+                    >
                       Edit
                     </Button>
                   </div>
@@ -257,6 +318,122 @@ function EditProfile() {
             </label>
           </div>
         </div>
+        {editDialogOpen && editTargetTrack && (
+          <div className="modal-overlay">
+            <div className="edit-track-modal">
+              <h3>Edit Track: {editTargetTrack.name}</h3>
+
+              {editTargetTrack.is_for_sale ? (
+                <p style={{ color: "red" }}>
+                  ❌ You can't edit a track while it's for sale.
+                </p>
+              ) : (
+                <>
+                  <div className="preview-section">
+                    <div>
+                      <p>🎵 Current Audio:</p>
+                      <audio
+                        src={
+                          editTargetTrack.music_ipfs
+                            ? editTargetTrack.music_ipfs.replace(
+                                "ipfs://",
+                                "https://w3s.link/ipfs/"
+                              )
+                            : `http://localhost:5000/uploads/${editTargetTrack.musicname}`
+                        }
+                        controls
+                        style={{ width: "100%" }}
+                      />
+                      {editTargetTrack.newAudio && (
+                        <>
+                          <p>🎧 New Audio Selected:</p>
+                          <audio
+                            src={URL.createObjectURL(editTargetTrack.newAudio)}
+                            controls
+                            style={{ width: "100%", marginTop: "5px" }}
+                          />
+                        </>
+                      )}
+                    </div>
+
+                    <div>
+                      <p>🖼 Current Cover:</p>
+                      <img
+                        src={
+                          editTargetTrack.img_ipfs
+                            ? editTargetTrack.img_ipfs.replace(
+                                "ipfs://",
+                                "https://w3s.link/ipfs/"
+                              )
+                            : `http://localhost:5000/uploads/${editTargetTrack.img}`
+                        }
+                        alt="Old Cover"
+                        className="image-preview"
+                      />
+                      {editTargetTrack.newImage && (
+                        <>
+                          <p>🆕 New Cover Selected:</p>
+                          <img
+                            src={URL.createObjectURL(editTargetTrack.newImage)}
+                            alt="New Cover"
+                            className="image-preview"
+                          />
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <hr />
+
+                  <div className="upload-new">
+                    <label>🎵 Upload New Audio:</label>
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      onChange={(e) =>
+                        setEditTargetTrack({
+                          ...editTargetTrack,
+                          newAudio: e.target.files[0],
+                        })
+                      }
+                    />
+                    <label>🖼 Upload New Cover:</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        setEditTargetTrack({
+                          ...editTargetTrack,
+                          newImage: e.target.files[0],
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="btn-row">
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleSubmitEdit}
+                    >
+                      Save Changes
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      onClick={handleDeleteTrack}
+                    >
+                      Delete Track
+                    </Button>
+                    <Button onClick={() => setEditDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
 }
